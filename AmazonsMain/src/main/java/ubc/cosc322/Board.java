@@ -2,8 +2,8 @@ package ubc.cosc322;
 import java.util.*;
 
 /**
- * @author pie-d
- *
+ * @author Vaughn Janes, Nick McGee, Erik Johnston, Ann Ni 
+ *	A class for easy manipulation/analysis of the game board for Game of the Amazons
  */
 public class Board {
 	private int[][] board;
@@ -22,15 +22,21 @@ public class Board {
 		this.board = board;
 	}
 	
+	/** Setter method for inner board variable
+	 * @param board in 1D ArrayList format
+	 */
 	public void setBoard(ArrayList<Integer> board) {
 		this.board = convertTo2DArray(board);
 	}
 	
+	/** Setter method for inner board variable
+	 * @param board in 2D int array format
+	 */
 	public void setBoard(int[][] board) {
 		this.board = board;
 	}
 	
-	/**
+	/** Getter method for inner board variable.
 	 * @return the board as a primitive 2D int array.
 	 */
 	public int[][] getBoard(){
