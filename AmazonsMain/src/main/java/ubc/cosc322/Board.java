@@ -1,43 +1,71 @@
 package ubc.cosc322;
 
 import java.util.*;
-
 import ubc.cosc322.COSC322Test;
 
+/**
+ * @author pie-d
+ *
+ */
 public class Board {
-	ArrayList<Integer> board = null;
+	int[][] board;
 	COSC322Test game = null;
-
+	
 	final int ROW_WIDTH = 11;
 	final int OBSOLETE_COLUMNS = 12;
 
 	public Board(ArrayList<Integer> board, COSC322Test game) {
-		this.board = board;
+		this.board = convertTo2DArray(board);
 		this.game = game;
 	}
-
+	
 	public void setBoard(ArrayList<Integer> board) {
-		this.board = board;
+		this.board = convertTo2DArray(board);
 	}
-
-	public ArrayList<Integer> getBoard() {
+	
+	public int[][] getBoard(){
 		return board;
 	}
-
-	public int[] convertIndexToCoords(int index) {
-		int temp = index;
-		// remove first 12 coords
-		temp += -OBSOLETE_COLUMNS;
-
-		int y = (int) Math.floor(temp / ROW_WIDTH);
-
-		int x = temp - (ROW_WIDTH * y) - 1;
-
-		int[] coords = { x, y };
-		return coords;
+	
+	
+	/**
+	 * @return 
+	 *
+	public Map<String, ArrayList<Integer>> getPieces(){
+		 
+		
+		for (int x = 1; x < 11; x++)
+			for (int y = 1; y < 11; y++) {
+				if (board.get(y*10) == 1) {
+					
+				}	
+				else if (board.get(x*y + y) == 2) {
+					
+				}	
+			}
+		
+		return queenLocations;
 	}
-
-
+	*/
+	
+	/**
+	 * @param board as a one-dimensional ArrayList<Integer>
+	 * @return A board configuration as a 2-D array. The zero-th row and zero-th column are still obsolete, so that the first index refers to the first row (or column)
+	 */
+	public static int[][] convertTo2DArray(ArrayList<Integer> board){
+		int[][] newBoard = new int[11][11];
+		
+		for (int y = 0; y < 11; y++)
+			for (int x = 0; x < 11; x++)
+				newBoard[x][y] = board.get(y*11 + x);
+		
+		return newBoard;
+	}
+	
+	public void generateRandomMove(int team) {
+		
+	}
+	
 	public ArrayList<Integer> getPossibleMoves(int colour) {
 		ArrayList<Integer> tempBoard = board;
 		ArrayList<Integer> validMoves = new ArrayList<Integer>();
@@ -57,30 +85,14 @@ public class Board {
 		return validMoves;
 	}
 	
-	public int convertCoordsToIndex(int x, int y) {
-		// first 12 coords are useless
-		int coordinate = OBSOLETE_COLUMNS;
-
-		// add 11 for each complete row we should skip
-		coordinate += (y - 1) * ROW_WIDTH;
-		// add the x value of the coordinate to the index + 1 for the not in play column
-		coordinate += x + 1;
-
-		return coordinate;
-	}
-
 	public boolean movePiece(int qx1, int qy1, int qx2, int qy2, int ax, int ay, int colour) {
 		if (qx1 <= 10 && qx1 > 0 && qy1 < 10 && qy1 > 0) {
-			int queenStart = convertCoordsToIndex(qx1, qy1);
-			int queenFinish = convertCoordsToIndex(qx2, qy2);
-			int arrow = convertCoordsToIndex(ax, ay);
-
-			ArrayList<Integer> newBoard = board;
-			newBoard.set(queenStart, 0);
-			if (newBoard.get(queenFinish) == 0) {
-				newBoard.set(queenFinish, colour);
+			int[][] newBoard = board;
+			newBoard[qx1][qy1] = 0;
+			if (newBoard[qx2][qy2] == 0) {
+				newBoard[qx2][qy2] = colour;
 			}
-			newBoard.set(arrow, 3);
+			newBoard[ax][ay] = 3;
 
 			game.sendPlay(qx1, qy1, qx2, qy2, ax, ay);
 			return true;
