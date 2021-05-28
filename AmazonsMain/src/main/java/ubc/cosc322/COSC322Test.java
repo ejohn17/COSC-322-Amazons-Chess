@@ -2,7 +2,6 @@
 package ubc.cosc322;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 import sfs2x.client.entities.Room;
@@ -21,7 +20,9 @@ public class COSC322Test extends GamePlayer {
 
     private GameClient gameClient = null;
     private BaseGameGUI gamegui = null;
+    private Board board = new Board();
 
+    private int ourTeam;
     private String userName = null;
     private String passwd = null;
 
@@ -95,12 +96,96 @@ public class COSC322Test extends GamePlayer {
             System.out.println("Queen initial position: " + queenpos.toString());
             System.out.println("Queen new position: " + queenposNew.toString());
             System.out.println("Arrow position: " + arrowPos.toString());
-        } else if (messageType.equalsIgnoreCase(GameMessage.GAME_STATE_BOARD)) {
+        }
+        else if (messageType.equalsIgnoreCase(GameMessage.GAME_STATE_BOARD)) {
             ArrayList<Integer> gamestate = (ArrayList<Integer>) msgDetails.get(AmazonsGameMessage.GAME_STATE);
             gamegui.setGameState(gamestate);
+            board.setBoard(gamestate);
             System.out.println("Game state: " + gamestate.toString());
+            
+            ArrayList<int[]> allMoves = getAllPossibleMoves(2);
+            int[] randomMove = allMoves.get((int) (Math.random() * allMoves.size()));
+            System.out.println("Random selected move: qx1: " + randomMove[0] + ", qy1: " + randomMove[1] + ", qx2: " + randomMove[2] + ", qy2: " + randomMove[3] + ", ax: " + randomMove[4]+ ", ay: " + randomMove[5]);
+        }
+        else if (messageType.equalsIgnoreCase(GameMessage.GAME_ACTION_START)) {
+        	ArrayList<Integer> gamestate = (ArrayList<Integer>) msgDetails.get(AmazonsGameMessage.GAME_STATE);
+            gamegui.setGameState(gamestate);
+            board.setBoard(gamestate);
+            System.out.println("Game state: " + gamestate.toString());
+        	String blackUsername = (String)msgDetails.get(AmazonsGameMessage.PLAYER_BLACK);
+        	String whiteUsername = (String)msgDetails.get(AmazonsGameMessage.PLAYER_WHITE);
+        	
+        	//Figuring out which team we are
+        	try {
+            	if (blackUsername.equalsIgnoreCase(userName))
+            		ourTeam = 2;
+            	else if (whiteUsername.equalsIgnoreCase(userName))
+            		ourTeam = 1;
+        		System.out.println("We are on team " + (ourTeam == 1? "White" : "Black"));
+        	}
+        	catch(NullPointerException e) {
+        		System.err.println("Error. Our username did not match that of either the black or white player.");
+        	}
         }
         return true;
+    }
+    
+    //Note to selves: With the way the getAllPossibleMoves is coded, it probably won't let itself move a queen and then shoot an arrow onto the tile that the queen moved from (because it thinks there's an obstacle there)
+    //which will be a problem in the end-game scenario
+    
+    /**Returns a big ass list of int arrays of length 6, in the format { qx1, qy1, qx2, qy2, ax, ay }
+     * Make sure the global field thing, board (a 2D int array version of gamestate), is up to date when calling this.
+     * @param team
+     * @return
+     */
+    public ArrayList<int[]> getAllPossibleMoves(int team){
+    	ArrayList<int[]> movesList = new ArrayList<>();
+    	for (int[] curQueenCoords : board.getQueenCoords(team)) {
+    		ArrayList<int[]> allMovesForCurrentQueen = getAllPossibleMovesHelper(curQueenCoords[0], curQueenCoords[1]);
+    		for (int[] potentialMoveForCurQueen : allMovesForCurrentQueen) {
+    			ArrayList<int[]> allArrowsForCurrentMove = getAllPossibleMovesHelper(potentialMoveForCurQueen[0], potentialMoveForCurQueen[1]);
+    			for (int[] arrow : allArrowsForCurrentMove)
+    				movesList.add(new int[] { curQueenCoords[0], curQueenCoords[1], potentialMoveForCurQueen[0], potentialMoveForCurQueen[1], arrow[0], arrow[1] });
+    		}
+    	}
+		return movesList;
+    }
+    
+    /**
+     * @param x
+     * @param y
+     * @return A list of all tiles that can possibly be reached in a straight line from the provided coordinates
+     */
+    public ArrayList<int[]> getAllPossibleMovesHelper(int x, int y){
+    	ArrayList<int[]> list = new ArrayList<>();
+    	list.addAll(getAllPossibleMovesHelperHelper(x, y, 0, -1, new ArrayList<int[]>()));	//Up
+    	list.addAll(getAllPossibleMovesHelperHelper(x, y, 1, -1, new ArrayList<int[]>()));	//Up-right
+    	list.addAll(getAllPossibleMovesHelperHelper(x, y, 1, 0, new ArrayList<int[]>()));	//Right
+    	list.addAll(getAllPossibleMovesHelperHelper(x, y, 1, 1, new ArrayList<int[]>()));	//Down-right
+    	list.addAll(getAllPossibleMovesHelperHelper(x, y, 0, 1, new ArrayList<int[]>()));	//Down
+    	list.addAll(getAllPossibleMovesHelperHelper(x, y, -1, 1, new ArrayList<int[]>()));	//Down-left
+    	list.addAll(getAllPossibleMovesHelperHelper(x, y, -1, 0, new ArrayList<int[]>()));	//Left
+    	list.addAll(getAllPossibleMovesHelperHelper(x, y, -1, -1, new ArrayList<int[]>()));	//Up-left
+    	return list;
+    }
+    
+    
+    /** Returns an ArrayList of coordinates (as int arrays of size 2, all in ascending order by distance from starting point) 
+     *	that can be reached from starting coordinates (x, y) while taking horizontal/vertical/diagonal steps of size xInc and yInc respectively, before an obstacle is hit.
+     * @param x		Starting x coordinate
+     * @param xInc	Amount by which to increment x coordinate with each step
+     * @param y		Starting y coordinate
+     * @param yInc	Amount by which to increment y coordinate with each step
+     * @param list	Please provide an empty list (for tail recursion).
+     * @return
+     */
+    public ArrayList<int[]> getAllPossibleMovesHelperHelper(int x, int y, int xInc, int yInc, ArrayList<int[]> list){
+    	if (board.get(x + xInc, y + yInc) == 0) {									//Checking if current spot being examined is empty. 
+    		list.add(new int[]{x + xInc, y + yInc});								//If so, add it to list,
+    		return getAllPossibleMovesHelperHelper(x + xInc, y + yInc, xInc, yInc, list); //and recurse, passing along list and incrementing x & y
+    	}
+    	else	//If current spot is taken or out of bounds, returns the list.
+    		return list;
     }
 
     public void sendPlay(int qx1, int qy1, int qx2, int qy2, int ax, int ay) {
