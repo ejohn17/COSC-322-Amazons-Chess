@@ -8,8 +8,8 @@ import java.util.*;
 public class Board {
 	int[][] board;
 	
-	public Board(ArrayList<Integer> board) {
-		this.board = convertTo2DArray(board);
+	public Board(ArrayList<Integer> gamestate) {
+		this.board = convertTo2DArray(gamestate);
 	}
 	
 	public void setBoard(ArrayList<Integer> board) {
@@ -22,24 +22,19 @@ public class Board {
 	
 	
 	/**
-	 * @return 
-	 *
-	public Map<String, ArrayList<Integer>> getPieces(){
-		 
+	 * @param team Team number
+	 * @return An ArrayList of coordinates x, y (as ArrayLists of size 2) for each queen on the specified team
+	 */
+	public ArrayList<ArrayList<Integer>> getQueenCoords(int team){
+		ArrayList<ArrayList<Integer>> queenLocations = new ArrayList<>(4);
 		
-		for (int x = 1; x < 11; x++)
-			for (int y = 1; y < 11; y++) {
-				if (board.get(y*10) == 1) {
+		for (int y = 0; y < board.length; y++)
+			for (int x = 0; x < board[y].length; x++)
+				if (board[x][y] == team)
+					queenLocations.add(new ArrayList<Integer>(Arrays.asList(x, y)));
 					
-				}	
-				else if (board.get(x*y + y) == 2) {
-					
-				}	
-			}
-		
 		return queenLocations;
 	}
-	*/
 	
 	/**
 	 * @param board as a one-dimensional ArrayList<Integer>
