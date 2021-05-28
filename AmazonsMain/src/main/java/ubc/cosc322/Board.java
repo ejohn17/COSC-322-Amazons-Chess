@@ -8,6 +8,13 @@ import java.util.*;
 public class Board {
 	private int[][] board;
 	
+	/**
+	 * Default constructor. The class won't work properly if this constructor is used and the inner board field is never set,
+	 * but I made this so that a Board can be instantiated within COSC322Test before a gamestate is provided.
+	 */
+	public Board() {
+	}
+	
 	/** Constructor for the one-dimensional ArrayList<Integer> format.
 	 * @param gamestate board in one-dimensional format.
 	 */
@@ -43,18 +50,29 @@ public class Board {
 		return board;
 	}
 	
+	/**
+	 * @param x int x coordinate
+	 * @param y int y coordinate
+	 * @return The value of the game board at coords x, y. Returns -1 if out of bounds.
+	 */
+	public int get(int x, int y) {
+		if (x > 0 && y > 0 && x < 11 && y < 11) //Checks if coords "out of bounds" (quotation marks, because 0th column and 0th row count as being out of bounds)
+			return board[x][y];
+		else
+			return -1;
+	}
 	
 	/**
 	 * @param team Team number
 	 * @return An ArrayList of coordinates x, y (as ArrayLists of size 2) for each queen on the specified team
 	 */
-	public ArrayList<ArrayList<Integer>> getQueenCoords(int team){
-		ArrayList<ArrayList<Integer>> queenLocations = new ArrayList<>(4);
+	public ArrayList<int[]> getQueenCoords(int team){
+		ArrayList<int[]> queenLocations = new ArrayList<>(4);
 		
 		for (int y = 0; y < board.length; y++)
 			for (int x = 0; x < board[y].length; x++)
 				if (board[x][y] == team)
-					queenLocations.add(new ArrayList<Integer>(Arrays.asList(x, y)));
+					queenLocations.add(new int[] {x, y});
 					
 		return queenLocations;
 	}
