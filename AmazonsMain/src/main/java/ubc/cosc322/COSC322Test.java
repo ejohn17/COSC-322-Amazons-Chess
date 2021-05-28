@@ -11,7 +11,7 @@ import ygraph.ai.smartfox.games.GameClient;
 import ygraph.ai.smartfox.games.GameMessage;
 import ygraph.ai.smartfox.games.GamePlayer;
 import ygraph.ai.smartfox.games.amazons.AmazonsGameMessage;
-import ubc.cosc322.GameBoard;
+import ubc.cosc322.Board;
 
 /**
  * An example illustrating how to implement a GamePlayer
@@ -22,7 +22,7 @@ public class COSC322Test extends GamePlayer {
 
     private GameClient gameClient = null;
     private BaseGameGUI gamegui = null;
-    private GameBoard gameBoard = null;
+    private Board board = null;
     		
 
     private String userName = null;
@@ -75,7 +75,7 @@ public class COSC322Test extends GamePlayer {
 		String roomName = gameClient.getRoomList().get(0).getName();
 		
 		gameClient.joinRoom(roomName);
-		gameBoard = new GameBoard(null, this);
+		board = new Board(null, this);
         userName = gameClient.getUserName();
         
         if (gamegui != null) {
@@ -103,7 +103,7 @@ public class COSC322Test extends GamePlayer {
         } else if (messageType.equalsIgnoreCase(GameMessage.GAME_STATE_BOARD)) {
             ArrayList<Integer> gamestate = (ArrayList<Integer>) msgDetails.get(AmazonsGameMessage.GAME_STATE);
             gamegui.setGameState(gamestate);
-            gameBoard.setBoard(gamestate);
+            board.setBoard(gamestate);
             System.out.println("Game state: " + gamestate.toString());
         }
         return true;

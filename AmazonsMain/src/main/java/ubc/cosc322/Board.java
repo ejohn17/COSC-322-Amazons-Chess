@@ -4,14 +4,14 @@ import java.util.*;
 
 import ubc.cosc322.COSC322Test;
 
-public class GameBoard {
+public class Board {
 	ArrayList<Integer> board = null;
 	COSC322Test game = null;
 
 	final int ROW_WIDTH = 11;
 	final int OBSOLETE_COLUMNS = 12;
 
-	public GameBoard(ArrayList<Integer> board, COSC322Test game) {
+	public Board(ArrayList<Integer> board, COSC322Test game) {
 		this.board = board;
 		this.game = game;
 	}
