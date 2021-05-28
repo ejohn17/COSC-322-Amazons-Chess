@@ -6,10 +6,20 @@ import java.util.*;
  *
  */
 public class Board {
-	int[][] board;
+	private int[][] board;
 	
+	/** Constructor for the one-dimensional ArrayList<Integer> format.
+	 * @param gamestate board in one-dimensional format.
+	 */
 	public Board(ArrayList<Integer> gamestate) {
 		this.board = convertTo2DArray(gamestate);
+	}
+	
+	/** Constructor for 2D int array.
+	 * @param board gamestate board in 2D int array format.
+	 */
+	public Board(int[][] board) {
+		this.board = board;
 	}
 	
 	public void setBoard(ArrayList<Integer> board) {
