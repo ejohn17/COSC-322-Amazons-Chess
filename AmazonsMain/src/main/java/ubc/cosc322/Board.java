@@ -16,6 +16,13 @@ public class Board {
 		this.board = convertTo2DArray(board);
 	}
 	
+	public void setBoard(int[][] board) {
+		this.board = board;
+	}
+	
+	/**
+	 * @return the board as a primitive 2D int array.
+	 */
 	public int[][] getBoard(){
 		return board;
 	}
@@ -38,7 +45,7 @@ public class Board {
 	
 	/**
 	 * @param board as a one-dimensional ArrayList<Integer>
-	 * @return A board configuration as a 2-D array. The zero-th row and zero-th column are still obsolete, so that the first index refers to the first row (or column)
+	 * @return A board configuration as a primitive 2D int array. The zero-th row and zero-th column are still obsolete, so that the first index refers to the first row (or column). In other words, coords start at 1.
 	 */
 	public static int[][] convertTo2DArray(ArrayList<Integer> board){
 		int[][] newBoard = new int[11][11];
@@ -48,9 +55,5 @@ public class Board {
 				newBoard[x][y] = board.get(y*11 + x);
 		
 		return newBoard;
-	}
-	
-	public void generateRandomMove(int team) {
-		
 	}
 }
