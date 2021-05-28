@@ -11,6 +11,7 @@ import ygraph.ai.smartfox.games.GameClient;
 import ygraph.ai.smartfox.games.GameMessage;
 import ygraph.ai.smartfox.games.GamePlayer;
 import ygraph.ai.smartfox.games.amazons.AmazonsGameMessage;
+import ubc.cosc322.GameBoard;
 
 /**
  * An example illustrating how to implement a GamePlayer
@@ -21,6 +22,8 @@ public class COSC322Test extends GamePlayer {
 
     private GameClient gameClient = null;
     private BaseGameGUI gamegui = null;
+    private GameBoard gameBoard = null;
+    		
 
     private String userName = null;
     private String passwd = null;
@@ -70,8 +73,11 @@ public class COSC322Test extends GamePlayer {
 		for (Room r : gameClient.getRoomList())
 			System.out.println(r.getName());
 		String roomName = gameClient.getRoomList().get(0).getName();
+		
 		gameClient.joinRoom(roomName);
+		gameBoard = new GameBoard(null, this);
         userName = gameClient.getUserName();
+        
         if (gamegui != null) {
             gamegui.setRoomInformation(gameClient.getRoomList());
         }
@@ -86,7 +92,6 @@ public class COSC322Test extends GamePlayer {
         // For a detailed description of the message types and format,
         // see the method GamePlayer.handleGameMessage() in the game-client-api
         // document.
-        System.out.println("stuff" + messageType);
         if (messageType.equalsIgnoreCase(GameMessage.GAME_ACTION_MOVE)) {
             ArrayList<Integer> queenpos = (ArrayList<Integer>) msgDetails.get(AmazonsGameMessage.QUEEN_POS_CURR);
             ArrayList<Integer> queenposNew = (ArrayList<Integer>) msgDetails.get(AmazonsGameMessage.Queen_POS_NEXT);
@@ -98,6 +103,7 @@ public class COSC322Test extends GamePlayer {
         } else if (messageType.equalsIgnoreCase(GameMessage.GAME_STATE_BOARD)) {
             ArrayList<Integer> gamestate = (ArrayList<Integer>) msgDetails.get(AmazonsGameMessage.GAME_STATE);
             gamegui.setGameState(gamestate);
+            gameBoard.setBoard(gamestate);
             System.out.println("Game state: " + gamestate.toString());
         }
         return true;
