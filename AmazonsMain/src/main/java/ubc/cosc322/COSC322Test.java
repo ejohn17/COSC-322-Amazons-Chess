@@ -107,7 +107,7 @@ public class COSC322Test extends GamePlayer {
             int[] randomMove = allMoves.get((int) (Math.random() * allMoves.size()));
             System.out.println("Random selected move: qx1: " + randomMove[0] + ", qy1: " + randomMove[1] + ", qx2: " + randomMove[2] + ", qy2: " + randomMove[3] + ", ax: " + randomMove[4]+ ", ay: " + randomMove[5]);
         }
-        else if (messageType.equalsIgnoreCase(GameMessage.GAME_ACTION_START)) {
+        else if (messageType.equalsIgnoreCase(GameMessage.GAME_ACTION_START)) { //Not sure when this message is supposed to appear, but I think we need it to in order to find out what team we're on.
         	ArrayList<Integer> gamestate = (ArrayList<Integer>) msgDetails.get(AmazonsGameMessage.GAME_STATE);
             gamegui.setGameState(gamestate);
             board.setBoard(gamestate);
