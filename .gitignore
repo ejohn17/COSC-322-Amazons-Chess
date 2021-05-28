@@ -1,3 +1,6 @@
+#dependencies
+/target
+/AmazonsMain/target
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
