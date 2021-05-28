@@ -66,22 +66,26 @@ public class Board {
 		
 	}
 	
-	public ArrayList<Integer> getPossibleMoves(int colour) {
-		ArrayList<Integer> tempBoard = board;
-		ArrayList<Integer> validMoves = new ArrayList<Integer>();
+	public ArrayList<Integer[]> getPossibleMoves(int colour) {
+		int[][] tempBoard = board;
+		ArrayList<Integer[]> validMoves = new ArrayList<Integer[]>();
 		
 		int opponent;
 		if(colour == 1) opponent = 0;
 		else opponent = 1;
 		
-		// 12 unused columns start there to get the first index of an in play square
-		int index = OBSOLETE_COLUMNS;
-		for(int i = index; i < tempBoard.size() - 1; i++) {
-			if(i == 0 || i == opponent) {
-				// add the index of this valid move in the board to the set of valid moves
-				validMoves.add(i);
+		// i = y
+		for(int i = 0; i < tempBoard.length; i++) {
+			// j = x
+			for(int j = 0; j < tempBoard[i].length; j++) {
+				if(tempBoard[i][j] == 0 || tempBoard[i][j] == opponent) {
+					Integer[] temp = {j, i};
+					// add coordinate in form (x, y) into the valid moves set
+					validMoves.add(temp);
+				}
 			}
 		}
+		
 		return validMoves;
 	}
 	
