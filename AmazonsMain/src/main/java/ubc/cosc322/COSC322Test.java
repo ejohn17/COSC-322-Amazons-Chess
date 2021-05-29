@@ -65,17 +65,18 @@ public class COSC322Test extends GamePlayer {
 
     @Override
     public void onLogin() {
-		System.out.println(
-				"Congratualations!!! " + "I am called because the server indicated that the login is successfully");
-		System.out.println("The next step is to find a room and join it: "
-				+ "the gameClient instance created in my constructor knows how!");
-		System.out.println("\nRoom list:");
-		for (Room r : gameClient.getRoomList())
-			System.out.println(r.getName());
+//		System.out.println("Congratualations!!! " + "I am called because the server indicated that the login is successfully");
+		System.out.println("Connected to server\n=====================\n");
+
+		// List rooms
+//		System.out.println("\nRoom list:");
+//		for (Room r : gameClient.getRoomList())
+//			System.out.println(r.getName());
 		String roomName = gameClient.getRoomList().get(0).getName();
 		
+		// join the first room
 		gameClient.joinRoom(roomName);
-		board = new Board(null, this);
+		board = new Board();
         userName = gameClient.getUserName();
         
         if (gamegui != null) {
@@ -93,29 +94,46 @@ public class COSC322Test extends GamePlayer {
         // see the method GamePlayer.handleGameMessage() in the game-client-api
         // document.
         if (messageType.equalsIgnoreCase(GameMessage.GAME_ACTION_MOVE)) {
+        	System.out.println("\nGame action move message:\n=====================");
+        	
+        	
             ArrayList<Integer> queenpos = (ArrayList<Integer>) msgDetails.get(AmazonsGameMessage.QUEEN_POS_CURR);
             ArrayList<Integer> queenposNew = (ArrayList<Integer>) msgDetails.get(AmazonsGameMessage.Queen_POS_NEXT);
             ArrayList<Integer> arrowPos = (ArrayList<Integer>) msgDetails.get(AmazonsGameMessage.ARROW_POS);
+            
             gamegui.updateGameState(queenpos, queenposNew, arrowPos);
+            
             System.out.println("Queen initial position: " + queenpos.toString());
             System.out.println("Queen new position: " + queenposNew.toString());
             System.out.println("Arrow position: " + arrowPos.toString());
         }
         else if (messageType.equalsIgnoreCase(GameMessage.GAME_STATE_BOARD)) {
+        	System.out.println("\nGame state board message:\n=====================");
+
+        	
             ArrayList<Integer> gamestate = (ArrayList<Integer>) msgDetails.get(AmazonsGameMessage.GAME_STATE);
             gamegui.setGameState(gamestate);
             board.setBoard(gamestate);
+            
             System.out.println("Game state: " + gamestate.toString());
             
             ArrayList<int[]> allMoves = getAllPossibleMoves(2);
             int[] randomMove = allMoves.get((int) (Math.random() * allMoves.size()));
+            
             System.out.println("Random selected move: qx1: " + randomMove[0] + ", qy1: " + randomMove[1] + ", qx2: " + randomMove[2] + ", qy2: " + randomMove[3] + ", ax: " + randomMove[4]+ ", ay: " + randomMove[5]);
+            
+            sendPlay(randomMove[0], randomMove[1], randomMove[2], randomMove[3], randomMove[4], randomMove[5]);
         }
         else if (messageType.equalsIgnoreCase(GameMessage.GAME_ACTION_START)) { //Not sure when this message is supposed to appear, but I think we need it to in order to find out what team we're on.
+        	System.out.println("\nGame action start message:\n=====================");
+        	
+        	
         	ArrayList<Integer> gamestate = (ArrayList<Integer>) msgDetails.get(AmazonsGameMessage.GAME_STATE);
             gamegui.setGameState(gamestate);
-            board.setBoard(gamestate);
+//            board.setBoard(gamestate);
+            
             System.out.println("Game state: " + gamestate.toString());
+            
         	String blackUsername = (String)msgDetails.get(AmazonsGameMessage.PLAYER_BLACK);
         	String whiteUsername = (String)msgDetails.get(AmazonsGameMessage.PLAYER_WHITE);
         	
@@ -125,6 +143,7 @@ public class COSC322Test extends GamePlayer {
             		ourTeam = 2;
             	else if (whiteUsername.equalsIgnoreCase(userName))
             		ourTeam = 1;
+            	
         		System.out.println("We are on team " + (ourTeam == 1? "White" : "Black"));
         	}
         	catch(NullPointerException e) {
