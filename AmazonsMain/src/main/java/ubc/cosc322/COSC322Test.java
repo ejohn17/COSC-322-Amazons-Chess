@@ -94,21 +94,21 @@ public class COSC322Test extends GamePlayer {
         // see the method GamePlayer.handleGameMessage() in the game-client-api
         // document.
         if (messageType.equalsIgnoreCase(GameMessage.GAME_ACTION_MOVE)) {
-        	System.out.println("\nGame action move message:\n=====================");
+        	System.out.println("\nGame action move message:\n=====================" + msgDetails);
         	
             ArrayList<Integer> queenpos = (ArrayList<Integer>) msgDetails.get(AmazonsGameMessage.QUEEN_POS_CURR);
             ArrayList<Integer> queenposNew = (ArrayList<Integer>) msgDetails.get(AmazonsGameMessage.Queen_POS_NEXT);
             ArrayList<Integer> arrowPos = (ArrayList<Integer>) msgDetails.get(AmazonsGameMessage.ARROW_POS);
-            ArrayList<Integer> gamestate = (ArrayList<Integer>) msgDetails.get(AmazonsGameMessage.GAME_STATE);
             
+            board.movePiece(queenpos.get(0), queenpos.get(1), queenposNew.get(0), queenposNew.get(1), arrowPos.get(0), arrowPos.get(1), this.ourTeam);
+
             gamegui.updateGameState(queenpos, queenposNew, arrowPos);
-            board.setBoard(gamestate);
             
             System.out.println("Queen initial position: " + queenpos.toString());
             System.out.println("Queen new position: " + queenposNew.toString());
             System.out.println("Arrow position: " + arrowPos.toString());
             
-            makeMove(gamestate);
+            makeMove();
         }
         
         else if (messageType.equalsIgnoreCase(GameMessage.GAME_STATE_BOARD)) {
@@ -144,12 +144,9 @@ public class COSC322Test extends GamePlayer {
         	        	
     		System.out.println("We are on team " + (ourTeam == 1? "White" : "Black"));
     		System.out.println("Team number: " + ourTeam);
-    		
+    		ArrayList<Integer> gamestate = (ArrayList<Integer>) msgDetails.get(AmazonsGameMessage.GAME_STATE);
     		if(ourTeam == 2) {
-	            ArrayList<Integer> gamestate = (ArrayList<Integer>) msgDetails.get(AmazonsGameMessage.GAME_STATE);
-	            board.setBoard(gamestate);
-	            
-	        	makeMove(gamestate);
+	        	makeMove();
     		}
         }
         
@@ -162,7 +159,7 @@ public class COSC322Test extends GamePlayer {
      * @param Array list of current gamestate
      * @return 
      */
-    public void makeMove(ArrayList<Integer> gamestate) {
+    public void makeMove() {
         ArrayList<int[]> allMoves = getAllPossibleMoves(ourTeam);
         int[] randomMove = allMoves.get((int) (Math.random() * allMoves.size()));
         

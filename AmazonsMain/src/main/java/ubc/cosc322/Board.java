@@ -30,6 +30,7 @@ public class Board {
 	 * @param board gamestate board in 2D int array format.
 	 */
 	public Board(int[][] board) {
+		System.out.println("!!!! - " +  board);
 		this.board = board;
 	}
 	
@@ -89,9 +90,9 @@ public class Board {
 		int[][] newBoard = new int[11][11];
 		
 		for (int y = 0; y < 11; y++)
-			for (int x = 0; x < 11; x++)
+			for (int x = 0; x < 11; x++) 
 				newBoard[x][y] = board.get(y*11 + x);
-		
+
 		return newBoard;
 	}
 	
@@ -104,7 +105,6 @@ public class Board {
 			}
 			newBoard[ax][ay] = 3;
 
-			game.sendPlay(qx1, qy1, qx2, qy2, ax, ay);
 			setBoard(newBoard);
 			return true;
 		}
