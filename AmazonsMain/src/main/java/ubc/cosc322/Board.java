@@ -1,12 +1,15 @@
 package ubc.cosc322;
 import java.util.*;
 
+import ubc.cosc322.COSC322Test;
+
 /**
  * @author Vaughn Janes, Nick McGee, Erik Johnston, Ann Ni 
  *	A class for easy manipulation/analysis of the game board for Game of the Amazons
  */
 public class Board {
 	private int[][] board;
+	private COSC322Test game;
 	
 	/**
 	 * Default constructor. The class won't work properly if this constructor is used and the inner board field is never set,
@@ -18,14 +21,16 @@ public class Board {
 	/** Constructor for the one-dimensional ArrayList<Integer> format.
 	 * @param gamestate board in one-dimensional format.
 	 */
-	public Board(ArrayList<Integer> gamestate) {
+	public Board(ArrayList<Integer> gamestate, COSC322Test game) {
 		this.board = convertTo2DArray(gamestate);
+		this.game = game;
 	}
 	
 	/** Constructor for 2D int array.
 	 * @param board gamestate board in 2D int array format.
 	 */
 	public Board(int[][] board) {
+		System.out.println("!!!! - " +  board);
 		this.board = board;
 	}
 	
@@ -85,9 +90,24 @@ public class Board {
 		int[][] newBoard = new int[11][11];
 		
 		for (int y = 0; y < 11; y++)
-			for (int x = 0; x < 11; x++)
+			for (int x = 0; x < 11; x++) 
 				newBoard[x][y] = board.get(y*11 + x);
-		
+
 		return newBoard;
+	}
+	
+	public boolean movePiece(int qx1, int qy1, int qx2, int qy2, int ax, int ay, int colour) {
+		if (qx1 <= 10 && qx1 > 0 && qy1 < 10 && qy1 > 0) {
+			int[][] newBoard = board;
+			newBoard[qx1][qy1] = 0;
+			if (newBoard[qx2][qy2] == 0) {
+				newBoard[qx2][qy2] = colour;
+			}
+			newBoard[ax][ay] = 3;
+
+			setBoard(newBoard);
+			return true;
+		}
+		return false;
 	}
 }

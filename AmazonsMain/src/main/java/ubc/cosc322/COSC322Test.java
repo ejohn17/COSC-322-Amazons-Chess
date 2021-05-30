@@ -10,6 +10,7 @@ import ygraph.ai.smartfox.games.GameClient;
 import ygraph.ai.smartfox.games.GameMessage;
 import ygraph.ai.smartfox.games.GamePlayer;
 import ygraph.ai.smartfox.games.amazons.AmazonsGameMessage;
+import ubc.cosc322.Board;
 
 /**
  * An example illustrating how to implement a GamePlayer
@@ -20,9 +21,10 @@ public class COSC322Test extends GamePlayer {
 
     private GameClient gameClient = null;
     private BaseGameGUI gamegui = null;
-    private Board board = new Board();
-
-    private int ourTeam;
+    private Board board = null;
+    
+    private int ourTeam = 1;  // white = 1, black = 2
+    
     private String userName = null;
     private String passwd = null;
 
@@ -63,16 +65,20 @@ public class COSC322Test extends GamePlayer {
 
     @Override
     public void onLogin() {
-		System.out.println(
-				"Congratualations!!! " + "I am called because the server indicated that the login is successfully");
-		System.out.println("The next step is to find a room and join it: "
-				+ "the gameClient instance created in my constructor knows how!");
-		System.out.println("\nRoom list:");
-		for (Room r : gameClient.getRoomList())
-			System.out.println(r.getName());
+//		System.out.println("Congratualations!!! " + "I am called because the server indicated that the login is successfully");
+		System.out.println("Connected to server\n=====================\n");
+
+		// List rooms
+//		System.out.println("\nRoom list:");
+//		for (Room r : gameClient.getRoomList())
+//			System.out.println(r.getName());
 		String roomName = gameClient.getRoomList().get(0).getName();
+		
+		// join the first room
 		gameClient.joinRoom(roomName);
+		board = new Board();
         userName = gameClient.getUserName();
+        
         if (gamegui != null) {
             gamegui.setRoomInformation(gameClient.getRoomList());
         }
@@ -87,58 +93,89 @@ public class COSC322Test extends GamePlayer {
         // For a detailed description of the message types and format,
         // see the method GamePlayer.handleGameMessage() in the game-client-api
         // document.
-        System.out.println("stuff" + messageType);
         if (messageType.equalsIgnoreCase(GameMessage.GAME_ACTION_MOVE)) {
-        	System.out.println("\n========GAME_ACTION_MOVE message recieved========");
+        	System.out.println("\nGame action move message:\n=====================" + msgDetails);
+        	
             ArrayList<Integer> queenpos = (ArrayList<Integer>) msgDetails.get(AmazonsGameMessage.QUEEN_POS_CURR);
             ArrayList<Integer> queenposNew = (ArrayList<Integer>) msgDetails.get(AmazonsGameMessage.Queen_POS_NEXT);
             ArrayList<Integer> arrowPos = (ArrayList<Integer>) msgDetails.get(AmazonsGameMessage.ARROW_POS);
+            
+            board.movePiece(queenpos.get(0), queenpos.get(1), queenposNew.get(0), queenposNew.get(1), arrowPos.get(0), arrowPos.get(1), this.ourTeam);
+
             gamegui.updateGameState(queenpos, queenposNew, arrowPos);
+            
+            System.out.println("Queen initial position: " + queenpos.toString());
+            System.out.println("Queen new position: " + queenposNew.toString());
+            System.out.println("Arrow position: " + arrowPos.toString());
+            
+            makeMove();
         }
+        
         else if (messageType.equalsIgnoreCase(GameMessage.GAME_STATE_BOARD)) {
-        	System.out.println("\n========GAME_STATE_BOARD message recieved========");
+        	System.out.println("\nGame state board message:\n=====================");
+
+        	
             ArrayList<Integer> gamestate = (ArrayList<Integer>) msgDetails.get(AmazonsGameMessage.GAME_STATE);
             gamegui.setGameState(gamestate);
             board.setBoard(gamestate);
+            
             System.out.println("Game state: " + gamestate.toString());
         }
-        else if (messageType.equalsIgnoreCase(GameMessage.GAME_ACTION_START)) {
-        	System.out.println("\n========GAME_ACTION_START message recieved========");
-        	ArrayList<Integer> gamestate = (ArrayList<Integer>) msgDetails.get(AmazonsGameMessage.GAME_STATE);
-        	System.out.println("Game state: " + gamestate.toString());
-            gamegui.setGameState(gamestate);
-            board.setBoard(gamestate);
+        
+        else if (messageType.equalsIgnoreCase(GameMessage.GAME_ACTION_START)) { 
+        	System.out.println("\nGame action start message:\n=====================");
+
             
         	String blackUsername = (String)msgDetails.get(AmazonsGameMessage.PLAYER_BLACK);
         	String whiteUsername = (String)msgDetails.get(AmazonsGameMessage.PLAYER_WHITE);
         	
+        	System.out.println("Black team: " + blackUsername);
+        	System.out.println("White team: " + whiteUsername);
+        	        	
+        	
         	//Figuring out which team we are
-            if (userName.equalsIgnoreCase(blackUsername))
-            	ourTeam = 2;
-            else if (userName.equalsIgnoreCase(whiteUsername))
-            	ourTeam = 1;
-            else {
-            	System.err.println("Error. Our username did not match that of either the black or white player.");
+        	if (blackUsername.equalsIgnoreCase(userName))
+        		ourTeam = 2;
+        	else if (whiteUsername.equalsIgnoreCase(userName))
+        		ourTeam = 1;
+        	else {
+        		System.err.println("Error. Our username did not match that of either the black or white player.");
         		return false;
-            }
-        		
-        	if (ourTeam == 2)	//Black team moves first upon game-start
-        		makeRandomMove();
+        	}
+        	        	
+    		System.out.println("We are on team " + (ourTeam == 1? "White" : "Black"));
+    		System.out.println("Team number: " + ourTeam);
+    		ArrayList<Integer> gamestate = (ArrayList<Integer>) msgDetails.get(AmazonsGameMessage.GAME_STATE);
+    		if(ourTeam == 2) {
+	        	makeMove();
+    		}
+
         }
+        
         return true;
     }
     
-    public void makeRandomMove() {
+    
+    /**Gets all possible moves for your team, and then sends that move to the server.
+     * 
+     * @param Array list of current gamestate
+     * @return 
+     */
+    public void makeMove() {
         ArrayList<int[]> allMoves = getAllPossibleMoves(ourTeam);
         int[] randomMove = allMoves.get((int) (Math.random() * allMoves.size()));
+        
         System.out.println("Random selected move: qx1: " + randomMove[0] + ", qy1: " + randomMove[1] + ", qx2: " + randomMove[2] + ", qy2: " + randomMove[3] + ", ax: " + randomMove[4]+ ", ay: " + randomMove[5]);
+        
         sendPlay(randomMove[0], randomMove[1], randomMove[2], randomMove[3], randomMove[4], randomMove[5]);
     }
     
+    
+
     //Note to selves: With the way the getAllPossibleMoves is coded, it probably won't let itself move a queen and then shoot an arrow onto the tile that the queen moved from (because it thinks there's an obstacle there)
     //which will be a problem in the end-game scenario
     
-    /**Returns a big ass list of int arrays of length 6, in the format { qx1, qy1, qx2, qy2, ax, ay }
+    /**Returns a big list of int arrays of length 6, in the format { qx1, qy1, qx2, qy2, ax, ay }
      * Make sure the global field thing, board (a 2D int array version of gamestate), is up to date when calling this.
      * @param team
      * @return
@@ -194,6 +231,7 @@ public class COSC322Test extends GamePlayer {
     }
 
     public void sendPlay(int qx1, int qy1, int qx2, int qy2, int ax, int ay) {
+    	
     	ArrayList<Integer> queenStart = new ArrayList<Integer>();
     	queenStart.add(qy1);
     	queenStart.add(qx1);
@@ -205,6 +243,8 @@ public class COSC322Test extends GamePlayer {
     	arrow.add(ax);
     	this.gameClient.sendMoveMessage(queenStart, queenEnd, arrow);
     	this.gamegui.updateGameState(queenStart, queenEnd, arrow);
+    	
+    	System.out.println("Move made!");
     }
     
     @Override
