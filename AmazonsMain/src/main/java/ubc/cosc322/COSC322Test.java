@@ -22,9 +22,9 @@ public class COSC322Test extends GamePlayer {
     private GameClient gameClient = null;
     private BaseGameGUI gamegui = null;
     private Board board = null;
-    		
-
-    private int ourTeam;
+    
+    private int ourTeam = 1;  // white = 1, black = 2
+    
     private String userName = null;
     private String passwd = null;
 
@@ -96,17 +96,21 @@ public class COSC322Test extends GamePlayer {
         if (messageType.equalsIgnoreCase(GameMessage.GAME_ACTION_MOVE)) {
         	System.out.println("\nGame action move message:\n=====================");
         	
-        	
             ArrayList<Integer> queenpos = (ArrayList<Integer>) msgDetails.get(AmazonsGameMessage.QUEEN_POS_CURR);
             ArrayList<Integer> queenposNew = (ArrayList<Integer>) msgDetails.get(AmazonsGameMessage.Queen_POS_NEXT);
             ArrayList<Integer> arrowPos = (ArrayList<Integer>) msgDetails.get(AmazonsGameMessage.ARROW_POS);
+            ArrayList<Integer> gamestate = (ArrayList<Integer>) msgDetails.get(AmazonsGameMessage.GAME_STATE);
             
             gamegui.updateGameState(queenpos, queenposNew, arrowPos);
+            board.setBoard(gamestate);
             
             System.out.println("Queen initial position: " + queenpos.toString());
             System.out.println("Queen new position: " + queenposNew.toString());
             System.out.println("Arrow position: " + arrowPos.toString());
+            
+            makeMove(gamestate);
         }
+        
         else if (messageType.equalsIgnoreCase(GameMessage.GAME_STATE_BOARD)) {
         	System.out.println("\nGame state board message:\n=====================");
 
@@ -116,47 +120,62 @@ public class COSC322Test extends GamePlayer {
             board.setBoard(gamestate);
             
             System.out.println("Game state: " + gamestate.toString());
-            
-            ArrayList<int[]> allMoves = getAllPossibleMoves(2);
-            int[] randomMove = allMoves.get((int) (Math.random() * allMoves.size()));
-            
-            System.out.println("Random selected move: qx1: " + randomMove[0] + ", qy1: " + randomMove[1] + ", qx2: " + randomMove[2] + ", qy2: " + randomMove[3] + ", ax: " + randomMove[4]+ ", ay: " + randomMove[5]);
-            
-            sendPlay(randomMove[0], randomMove[1], randomMove[2], randomMove[3], randomMove[4], randomMove[5]);
         }
-        else if (messageType.equalsIgnoreCase(GameMessage.GAME_ACTION_START)) { //Not sure when this message is supposed to appear, but I think we need it to in order to find out what team we're on.
+        
+        else if (messageType.equalsIgnoreCase(GameMessage.GAME_ACTION_START)) { 
         	System.out.println("\nGame action start message:\n=====================");
-        	
-        	
-        	ArrayList<Integer> gamestate = (ArrayList<Integer>) msgDetails.get(AmazonsGameMessage.GAME_STATE);
-            gamegui.setGameState(gamestate);
-//            board.setBoard(gamestate);
-            
-            System.out.println("Game state: " + gamestate.toString());
             
         	String blackUsername = (String)msgDetails.get(AmazonsGameMessage.PLAYER_BLACK);
         	String whiteUsername = (String)msgDetails.get(AmazonsGameMessage.PLAYER_WHITE);
         	
+        	System.out.println("Black team: " + blackUsername);
+        	System.out.println("White team: " + whiteUsername);
+        	        	
+        	
         	//Figuring out which team we are
-        	try {
-            	if (blackUsername.equalsIgnoreCase(userName))
-            		ourTeam = 2;
-            	else if (whiteUsername.equalsIgnoreCase(userName))
-            		ourTeam = 1;
-            	
-        		System.out.println("We are on team " + (ourTeam == 1? "White" : "Black"));
-        	}
-        	catch(NullPointerException e) {
+        	if (blackUsername.equalsIgnoreCase(userName))
+        		ourTeam = 2;
+        	else if (whiteUsername.equalsIgnoreCase(userName))
+        		ourTeam = 1;
+        	else {
         		System.err.println("Error. Our username did not match that of either the black or white player.");
+        		return false;
         	}
+        	        	
+    		System.out.println("We are on team " + (ourTeam == 1? "White" : "Black"));
+    		System.out.println("Team number: " + ourTeam);
+    		
+    		if(ourTeam == 2) {
+	            ArrayList<Integer> gamestate = (ArrayList<Integer>) msgDetails.get(AmazonsGameMessage.GAME_STATE);
+	            board.setBoard(gamestate);
+	            
+	        	makeMove(gamestate);
+    		}
         }
+        
         return true;
     }
+    
+    
+    /**Gets all possible moves for your team, and then sends that move to the server.
+     * 
+     * @param Array list of current gamestate
+     * @return 
+     */
+    public void makeMove(ArrayList<Integer> gamestate) {
+        ArrayList<int[]> allMoves = getAllPossibleMoves(ourTeam);
+        int[] randomMove = allMoves.get((int) (Math.random() * allMoves.size()));
+        
+        System.out.println("Random selected move: qx1: " + randomMove[0] + ", qy1: " + randomMove[1] + ", qx2: " + randomMove[2] + ", qy2: " + randomMove[3] + ", ax: " + randomMove[4]+ ", ay: " + randomMove[5]);
+        
+        sendPlay(randomMove[0], randomMove[1], randomMove[2], randomMove[3], randomMove[4], randomMove[5]);
+    }
+    
     
     //Note to selves: With the way the getAllPossibleMoves is coded, it probably won't let itself move a queen and then shoot an arrow onto the tile that the queen moved from (because it thinks there's an obstacle there)
     //which will be a problem in the end-game scenario
     
-    /**Returns a big ass list of int arrays of length 6, in the format { qx1, qy1, qx2, qy2, ax, ay }
+    /**Returns a big list of int arrays of length 6, in the format { qx1, qy1, qx2, qy2, ax, ay }
      * Make sure the global field thing, board (a 2D int array version of gamestate), is up to date when calling this.
      * @param team
      * @return
@@ -212,6 +231,7 @@ public class COSC322Test extends GamePlayer {
     }
 
     public void sendPlay(int qx1, int qy1, int qx2, int qy2, int ax, int ay) {
+    	
     	ArrayList<Integer> queenStart = new ArrayList<Integer>();
     	queenStart.add(qy1);
     	queenStart.add(qx1);
@@ -223,6 +243,8 @@ public class COSC322Test extends GamePlayer {
     	arrow.add(ax);
     	this.gameClient.sendMoveMessage(queenStart, queenEnd, arrow);
     	this.gamegui.updateGameState(queenStart, queenEnd, arrow);
+    	
+    	System.out.println("Move made!");
     }
     
     @Override
