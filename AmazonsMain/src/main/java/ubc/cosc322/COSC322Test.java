@@ -124,6 +124,7 @@ public class COSC322Test extends GamePlayer {
         
         else if (messageType.equalsIgnoreCase(GameMessage.GAME_ACTION_START)) { 
         	System.out.println("\nGame action start message:\n=====================");
+
             
         	String blackUsername = (String)msgDetails.get(AmazonsGameMessage.PLAYER_BLACK);
         	String whiteUsername = (String)msgDetails.get(AmazonsGameMessage.PLAYER_WHITE);
@@ -148,6 +149,7 @@ public class COSC322Test extends GamePlayer {
     		if(ourTeam == 2) {
 	        	makeMove();
     		}
+
         }
         
         return true;
@@ -169,6 +171,7 @@ public class COSC322Test extends GamePlayer {
     }
     
     
+
     //Note to selves: With the way the getAllPossibleMoves is coded, it probably won't let itself move a queen and then shoot an arrow onto the tile that the queen moved from (because it thinks there's an obstacle there)
     //which will be a problem in the end-game scenario
     
