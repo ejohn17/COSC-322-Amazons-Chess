@@ -89,45 +89,50 @@ public class COSC322Test extends GamePlayer {
         // document.
         System.out.println("stuff" + messageType);
         if (messageType.equalsIgnoreCase(GameMessage.GAME_ACTION_MOVE)) {
+        	System.out.println("\n========GAME_ACTION_MOVE message recieved========");
             ArrayList<Integer> queenpos = (ArrayList<Integer>) msgDetails.get(AmazonsGameMessage.QUEEN_POS_CURR);
             ArrayList<Integer> queenposNew = (ArrayList<Integer>) msgDetails.get(AmazonsGameMessage.Queen_POS_NEXT);
             ArrayList<Integer> arrowPos = (ArrayList<Integer>) msgDetails.get(AmazonsGameMessage.ARROW_POS);
             gamegui.updateGameState(queenpos, queenposNew, arrowPos);
-            System.out.println("Queen initial position: " + queenpos.toString());
-            System.out.println("Queen new position: " + queenposNew.toString());
-            System.out.println("Arrow position: " + arrowPos.toString());
         }
         else if (messageType.equalsIgnoreCase(GameMessage.GAME_STATE_BOARD)) {
+        	System.out.println("\n========GAME_STATE_BOARD message recieved========");
             ArrayList<Integer> gamestate = (ArrayList<Integer>) msgDetails.get(AmazonsGameMessage.GAME_STATE);
             gamegui.setGameState(gamestate);
             board.setBoard(gamestate);
             System.out.println("Game state: " + gamestate.toString());
-            
-            ArrayList<int[]> allMoves = getAllPossibleMoves(2);
-            int[] randomMove = allMoves.get((int) (Math.random() * allMoves.size()));
-            System.out.println("Random selected move: qx1: " + randomMove[0] + ", qy1: " + randomMove[1] + ", qx2: " + randomMove[2] + ", qy2: " + randomMove[3] + ", ax: " + randomMove[4]+ ", ay: " + randomMove[5]);
         }
-        else if (messageType.equalsIgnoreCase(GameMessage.GAME_ACTION_START)) { //Not sure when this message is supposed to appear, but I think we need it to in order to find out what team we're on.
+        else if (messageType.equalsIgnoreCase(GameMessage.GAME_ACTION_START)) {
+        	System.out.println("\n========GAME_ACTION_START message recieved========");
         	ArrayList<Integer> gamestate = (ArrayList<Integer>) msgDetails.get(AmazonsGameMessage.GAME_STATE);
+        	System.out.println("Game state: " + gamestate.toString());
             gamegui.setGameState(gamestate);
             board.setBoard(gamestate);
-            System.out.println("Game state: " + gamestate.toString());
+            
         	String blackUsername = (String)msgDetails.get(AmazonsGameMessage.PLAYER_BLACK);
         	String whiteUsername = (String)msgDetails.get(AmazonsGameMessage.PLAYER_WHITE);
         	
         	//Figuring out which team we are
-        	try {
-            	if (blackUsername.equalsIgnoreCase(userName))
-            		ourTeam = 2;
-            	else if (whiteUsername.equalsIgnoreCase(userName))
-            		ourTeam = 1;
-        		System.out.println("We are on team " + (ourTeam == 1? "White" : "Black"));
-        	}
-        	catch(NullPointerException e) {
-        		System.err.println("Error. Our username did not match that of either the black or white player.");
-        	}
+            if (userName.equalsIgnoreCase(blackUsername))
+            	ourTeam = 2;
+            else if (userName.equalsIgnoreCase(whiteUsername))
+            	ourTeam = 1;
+            else {
+            	System.err.println("Error. Our username did not match that of either the black or white player.");
+        		return false;
+            }
+        		
+        	if (ourTeam == 2)	//Black team moves first upon game-start
+        		makeRandomMove();
         }
         return true;
+    }
+    
+    public void makeRandomMove() {
+        ArrayList<int[]> allMoves = getAllPossibleMoves(ourTeam);
+        int[] randomMove = allMoves.get((int) (Math.random() * allMoves.size()));
+        System.out.println("Random selected move: qx1: " + randomMove[0] + ", qy1: " + randomMove[1] + ", qx2: " + randomMove[2] + ", qy2: " + randomMove[3] + ", ax: " + randomMove[4]+ ", ay: " + randomMove[5]);
+        sendPlay(randomMove[0], randomMove[1], randomMove[2], randomMove[3], randomMove[4], randomMove[5]);
     }
     
     //Note to selves: With the way the getAllPossibleMoves is coded, it probably won't let itself move a queen and then shoot an arrow onto the tile that the queen moved from (because it thinks there's an obstacle there)
