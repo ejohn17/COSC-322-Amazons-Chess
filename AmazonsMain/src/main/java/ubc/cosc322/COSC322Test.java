@@ -110,9 +110,9 @@ public class COSC322Test extends GamePlayer {
             System.out.println(board.toString());
             
             // Their exact move: (Useful for debugging)
-            System.out.println("Enemy Queen initial position: " + queenpos.toString());
-            System.out.println("Enemy Queen new position: " + queenposNew.toString());
-            System.out.println("Enemy Arrow position: " + arrowPos.toString());
+            System.out.println("Enemy Queen inital position: [x:" + queenpos.get(1) + ", y:" + queenpos.get(0) + "]");
+            System.out.println("Enemy Queen new position: [x:" + queenposNew.get(1) + ", y:" + queenposNew.get(0) + "]");
+            System.out.println("Enemy Arrow position: [x:" + arrowPos.get(1) + ", y:" + arrowPos.get(0) + "]");
             
             // After enemy has made their move, we make our move
             makeMove();
@@ -184,15 +184,15 @@ public class COSC322Test extends GamePlayer {
         int[] randomMove = allMoves.get((int) (Math.random() * allMoves.size()));
         
         // Send that play to the server, and then update our board with that move.
-        sendPlay(randomMove[0], randomMove[1], randomMove[2], randomMove[3], randomMove[4], randomMove[5]);
+        sendPlay(randomMove[1], randomMove[0], randomMove[3], randomMove[2], randomMove[5], randomMove[4]);
         board.movePiece(randomMove[0], randomMove[1], randomMove[2], randomMove[3], randomMove[4], randomMove[5], ourTeam);
         
         // Print out that we made a move, and which move we made
         System.out.println("\n\nWe made a move:\n=====================");
         System.out.println(board.toString());    
-        System.out.println("Inital queen position: [" + randomMove[0] + ", " + randomMove[1] + "]");
-        System.out.println("New queen position: [" + randomMove[2] + ", " + randomMove[3] + "]");
-        System.out.println("Arrow position: [" + randomMove[4] + ", " + randomMove[5] + "]");
+        System.out.println("Inital queen position: [x:" + randomMove[1] + ", y:" + randomMove[0] + "]");
+        System.out.println("New queen position: [x:" + randomMove[3] + ", y:" + randomMove[2] + "]");
+        System.out.println("Arrow position: [x:" + randomMove[5] + ", y:" + randomMove[4] + "]");
 
 	}
     
@@ -208,11 +208,11 @@ public class COSC322Test extends GamePlayer {
     public ArrayList<int[]> getAllPossibleMoves(int team){
     	ArrayList<int[]> movesList = new ArrayList<>();
     	for (int[] curQueenCoords : board.getQueenCoords(team)) {
-    		ArrayList<int[]> allMovesForCurrentQueen = getAllPossibleMovesHelper(curQueenCoords[0], curQueenCoords[1]);
+    		ArrayList<int[]> allMovesForCurrentQueen = getAllPossibleMovesHelper(curQueenCoords[1], curQueenCoords[0]);
     		for (int[] potentialMoveForCurQueen : allMovesForCurrentQueen) {
-    			ArrayList<int[]> allArrowsForCurrentMove = getAllPossibleMovesHelper(potentialMoveForCurQueen[0], potentialMoveForCurQueen[1]);
+    			ArrayList<int[]> allArrowsForCurrentMove = getAllPossibleMovesHelper(potentialMoveForCurQueen[1], potentialMoveForCurQueen[0]);
     			for (int[] arrow : allArrowsForCurrentMove)
-    				movesList.add(new int[] { curQueenCoords[0], curQueenCoords[1], potentialMoveForCurQueen[0], potentialMoveForCurQueen[1], arrow[0], arrow[1] });
+    				movesList.add(new int[] { curQueenCoords[1], curQueenCoords[0], potentialMoveForCurQueen[1], potentialMoveForCurQueen[0], arrow[1], arrow[0] });
     		}
     	}
 		return movesList;
