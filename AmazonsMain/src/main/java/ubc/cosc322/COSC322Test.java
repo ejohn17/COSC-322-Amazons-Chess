@@ -23,7 +23,8 @@ public class COSC322Test extends GamePlayer {
     private BaseGameGUI gamegui = null;
     private Board board = null;
     
-    private int ourTeam = 1;  // white = 1, black = 2
+    private int ourTeam = 2;  // white = 2, black = 1
+    private int otherTeam = 1;
     
     private String userName = null;
     private String passwd = null;
@@ -65,7 +66,6 @@ public class COSC322Test extends GamePlayer {
 
     @Override
     public void onLogin() {
-//		System.out.println("Congratualations!!! " + "I am called because the server indicated that the login is successfully");
 		System.out.println("Connected to server\n=====================\n");
 
 		// List rooms
@@ -94,62 +94,79 @@ public class COSC322Test extends GamePlayer {
         // see the method GamePlayer.handleGameMessage() in the game-client-api
         // document.
         if (messageType.equalsIgnoreCase(GameMessage.GAME_ACTION_MOVE)) {
-        	System.out.println("\nGame action move message:\n=====================" + msgDetails);
+//        	System.out.println("\nGame action move message:\n=====================");
         	
+        	// Get the enenemy's move
             ArrayList<Integer> queenpos = (ArrayList<Integer>) msgDetails.get(AmazonsGameMessage.QUEEN_POS_CURR);
             ArrayList<Integer> queenposNew = (ArrayList<Integer>) msgDetails.get(AmazonsGameMessage.Queen_POS_NEXT);
             ArrayList<Integer> arrowPos = (ArrayList<Integer>) msgDetails.get(AmazonsGameMessage.ARROW_POS);
             
-            board.movePiece(queenpos.get(0), queenpos.get(1), queenposNew.get(0), queenposNew.get(1), arrowPos.get(0), arrowPos.get(1), this.ourTeam);
-
+            // Update the board and GUI with the opposing player's move
+            board.movePiece(queenpos.get(0), queenpos.get(1), queenposNew.get(0), queenposNew.get(1), arrowPos.get(0), arrowPos.get(1), this.otherTeam);
             gamegui.updateGameState(queenpos, queenposNew, arrowPos);
             
-            System.out.println("Queen initial position: " + queenpos.toString());
-            System.out.println("Queen new position: " + queenposNew.toString());
-            System.out.println("Arrow position: " + arrowPos.toString());
+            // Print out their move
+            System.out.println("\n\nOther player made a move:\n=====================");
+            System.out.println(board.toString());
             
+            // Their exact move: (Useful for debugging)
+            System.out.println("Enemy Queen inital position: [x:" + queenpos.get(1) + ", y:" + queenpos.get(0) + "]");
+            System.out.println("Enemy Queen new position: [x:" + queenposNew.get(1) + ", y:" + queenposNew.get(0) + "]");
+            System.out.println("Enemy Arrow position: [x:" + arrowPos.get(1) + ", y:" + arrowPos.get(0) + "]");
+            
+            // After enemy has made their move, we make our move
             makeMove();
         }
         
         else if (messageType.equalsIgnoreCase(GameMessage.GAME_STATE_BOARD)) {
         	System.out.println("\nGame state board message:\n=====================");
 
-        	
+        	// Gets the current game state
             ArrayList<Integer> gamestate = (ArrayList<Integer>) msgDetails.get(AmazonsGameMessage.GAME_STATE);
-            gamegui.setGameState(gamestate);
-            board.setBoard(gamestate);
             
-            System.out.println("Game state: " + gamestate.toString());
+            // Set the board and GUI to the inital game state
+            board.setBoard(gamestate);
+            gamegui.setGameState(gamestate);
+            
+            // Print out inital board
+            System.out.println("\nInital board:\n=====================");
+            System.out.println(board.toString());
         }
         
         else if (messageType.equalsIgnoreCase(GameMessage.GAME_ACTION_START)) { 
         	System.out.println("\nGame action start message:\n=====================");
 
-            
+            // Get the user-names of the players matching black or white
         	String blackUsername = (String)msgDetails.get(AmazonsGameMessage.PLAYER_BLACK);
         	String whiteUsername = (String)msgDetails.get(AmazonsGameMessage.PLAYER_WHITE);
         	
+        	// Print out which teams we are on
         	System.out.println("Black team: " + blackUsername);
         	System.out.println("White team: " + whiteUsername);
         	        	
         	
-        	//Figuring out which team we are
-        	if (blackUsername.equalsIgnoreCase(userName))
-        		ourTeam = 2;
-        	else if (whiteUsername.equalsIgnoreCase(userName))
+        	// Determine which team we are on
+        	if (blackUsername.equalsIgnoreCase(userName)) {
         		ourTeam = 1;
+        		otherTeam = 2;
+        	}
+        	else if (whiteUsername.equalsIgnoreCase(userName)) {
+        		ourTeam = 2;
+        		otherTeam = 1;
+        	}
         	else {
         		System.err.println("Error. Our username did not match that of either the black or white player.");
         		return false;
         	}
         	        	
-    		System.out.println("We are on team " + (ourTeam == 1? "White" : "Black"));
+        	// Just confirm the team (useful for debugging)
+    		System.out.println("We are on team " + (ourTeam == 1? "Black" : "White"));
     		System.out.println("Team number: " + ourTeam);
-    		ArrayList<Integer> gamestate = (ArrayList<Integer>) msgDetails.get(AmazonsGameMessage.GAME_STATE);
-    		if(ourTeam == 2) {
+    		
+    		// If we're black team, we make the first move
+    		if(ourTeam == 1) 
 	        	makeMove();
-    		}
-
+    		
         }
         
         return true;
@@ -162,14 +179,22 @@ public class COSC322Test extends GamePlayer {
      * @return 
      */
     public void makeMove() {
+    	// Find all random moves, and randomly pick one.
         ArrayList<int[]> allMoves = getAllPossibleMoves(ourTeam);
         int[] randomMove = allMoves.get((int) (Math.random() * allMoves.size()));
         
-        System.out.println("Random selected move: qx1: " + randomMove[0] + ", qy1: " + randomMove[1] + ", qx2: " + randomMove[2] + ", qy2: " + randomMove[3] + ", ax: " + randomMove[4]+ ", ay: " + randomMove[5]);
-        
+        // Send that play to the server, and then update our board with that move.
         sendPlay(randomMove[0], randomMove[1], randomMove[2], randomMove[3], randomMove[4], randomMove[5]);
-    }
-    
+        board.movePiece(randomMove[0], randomMove[1], randomMove[2], randomMove[3], randomMove[4], randomMove[5], ourTeam);
+        
+        // Print out that we made a move, and which move we made
+        System.out.println("\n\nWe made a move:\n=====================");
+        System.out.println(board.toString());    
+        System.out.println("Inital queen position: [x:" + randomMove[0] + ", y:" + randomMove[1] + "]");
+        System.out.println("New queen position: [x:" + randomMove[2] + ", y:" + randomMove[3] + "]");
+        System.out.println("Arrow position: [x:" + randomMove[4] + ", y:" + randomMove[5] + "]");
+
+	}
     
 
     //Note to selves: With the way the getAllPossibleMoves is coded, it probably won't let itself move a queen and then shoot an arrow onto the tile that the queen moved from (because it thinks there's an obstacle there)
@@ -231,20 +256,20 @@ public class COSC322Test extends GamePlayer {
     }
 
     public void sendPlay(int qx1, int qy1, int qx2, int qy2, int ax, int ay) {
-    	
     	ArrayList<Integer> queenStart = new ArrayList<Integer>();
     	queenStart.add(qy1);
     	queenStart.add(qx1);
+    	
     	ArrayList<Integer> queenEnd = new ArrayList<Integer>();
     	queenEnd.add(qy2);
     	queenEnd.add(qx2);
+    	
     	ArrayList<Integer> arrow = new ArrayList<Integer>();
     	arrow.add(ay);
     	arrow.add(ax);
+    	
     	this.gameClient.sendMoveMessage(queenStart, queenEnd, arrow);
     	this.gamegui.updateGameState(queenStart, queenEnd, arrow);
-    	
-    	System.out.println("Move made!");
     }
     
     @Override
