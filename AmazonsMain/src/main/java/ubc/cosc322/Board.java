@@ -77,7 +77,7 @@ public class Board {
 		for (int y = 0; y < board.length; y++)
 			for (int x = 0; x < board[y].length; x++)
 				if (board[x][y] == team)
-					queenLocations.add(new int[] {x, y});
+					queenLocations.add(new int[] {y, x});
 					
 		return queenLocations;
 	}

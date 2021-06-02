@@ -184,15 +184,15 @@ public class COSC322Test extends GamePlayer {
         int[] randomMove = allMoves.get((int) (Math.random() * allMoves.size()));
         
         // Send that play to the server, and then update our board with that move.
-        sendPlay(randomMove[1], randomMove[0], randomMove[3], randomMove[2], randomMove[5], randomMove[4]);
-        board.movePiece(randomMove[0], randomMove[1], randomMove[2], randomMove[3], randomMove[4], randomMove[5], ourTeam);
+        sendPlay(randomMove[0], randomMove[1], randomMove[2], randomMove[3], randomMove[4], randomMove[5]);
+        board.movePiece(randomMove[1], randomMove[0], randomMove[3], randomMove[2], randomMove[5], randomMove[4], ourTeam);
         
         // Print out that we made a move, and which move we made
         System.out.println("\n\nWe made a move:\n=====================");
         System.out.println(board.toString());    
-        System.out.println("Inital queen position: [x:" + randomMove[1] + ", y:" + randomMove[0] + "]");
-        System.out.println("New queen position: [x:" + randomMove[3] + ", y:" + randomMove[2] + "]");
-        System.out.println("Arrow position: [x:" + randomMove[5] + ", y:" + randomMove[4] + "]");
+        System.out.println("Inital queen position: [x:" + randomMove[0] + ", y:" + randomMove[1] + "]");
+        System.out.println("New queen position: [x:" + randomMove[2] + ", y:" + randomMove[3] + "]");
+        System.out.println("Arrow position: [x:" + randomMove[4] + ", y:" + randomMove[5] + "]");
 
 	}
     
@@ -208,11 +208,11 @@ public class COSC322Test extends GamePlayer {
     public ArrayList<int[]> getAllPossibleMoves(int team){
     	ArrayList<int[]> movesList = new ArrayList<>();
     	for (int[] curQueenCoords : board.getQueenCoords(team)) {
-    		ArrayList<int[]> allMovesForCurrentQueen = getAllPossibleMovesHelper(curQueenCoords[1], curQueenCoords[0]);
+    		ArrayList<int[]> allMovesForCurrentQueen = getAllPossibleMovesHelper(curQueenCoords[0], curQueenCoords[1]);
     		for (int[] potentialMoveForCurQueen : allMovesForCurrentQueen) {
-    			ArrayList<int[]> allArrowsForCurrentMove = getAllPossibleMovesHelper(potentialMoveForCurQueen[1], potentialMoveForCurQueen[0]);
+    			ArrayList<int[]> allArrowsForCurrentMove = getAllPossibleMovesHelper(potentialMoveForCurQueen[0], potentialMoveForCurQueen[1]);
     			for (int[] arrow : allArrowsForCurrentMove)
-    				movesList.add(new int[] { curQueenCoords[1], curQueenCoords[0], potentialMoveForCurQueen[1], potentialMoveForCurQueen[0], arrow[1], arrow[0] });
+    				movesList.add(new int[] { curQueenCoords[0], curQueenCoords[1], potentialMoveForCurQueen[0], potentialMoveForCurQueen[1], arrow[0], arrow[1] });
     		}
     	}
 		return movesList;
