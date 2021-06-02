@@ -76,8 +76,8 @@ public class Board {
 		
 		for (int y = 0; y < board.length; y++)
 			for (int x = 0; x < board[y].length; x++)
-				if (board[x][y] == team)
-					queenLocations.add(new int[] {x, y});
+				if (board[y][x] == team)
+					queenLocations.add(new int[] {y, x});
 					
 		return queenLocations;
 	}
@@ -91,13 +91,24 @@ public class Board {
 		
 		for (int y = 0; y < 11; y++)
 			for (int x = 0; x < 11; x++) 
-				newBoard[x][y] = board.get(y*11 + x);
+				newBoard[y][x] = board.get(y*11 + x);
 
 		return newBoard;
 	}
 	
-	public boolean movePiece(int qx1, int qy1, int qx2, int qy2, int ax, int ay, int colour) {
-		if (qx1 <= 10 && qx1 > 0 && qy1 < 10 && qy1 > 0) {
+	/** Updates the board class with new moves
+	 * @param qx1 Original queen x position
+	 * @param qy1 Original queen y position
+	 * @param qx2 New queen x position
+	 * @param qy2 New queen y position
+	 * @param ax Arrow position
+	 * @param ax Arrow position
+	 * @return True if move within range of board, false if move is not within range of the board
+	 */
+	public void movePiece(int qx1, int qy1, int qx2, int qy2, int ax, int ay, int colour) {
+		// NOTE: Commented out if because it was rejecting some moves that it shouldn't
+		
+//		if (qx1 <= 10 && qx1 > 0 && qy1 < 10 && qy1 > 0) {
 			int[][] newBoard = board;
 			newBoard[qx1][qy1] = 0;
 			if (newBoard[qx2][qy2] == 0) {
@@ -106,8 +117,26 @@ public class Board {
 			newBoard[ax][ay] = 3;
 
 			setBoard(newBoard);
-			return true;
+			
+//			System.out.println("From board: Move made.");
+//			return true;
+//		}
+		
+//		System.out.println("From board: Move not made.");
+//		return false;
+	}
+	
+	/** 
+	 * @param none
+	 * @return A string that represents the game board. 1 = black, 2 = white, 3 = arrow
+	 */
+	public String toString() {
+		String boardString = "";
+		for(int i = 10; i > 0; i--) {
+			for(int j = 1; j < 11; j++) 
+				boardString += Integer.toString((board[i][j]));
+			boardString += "\n";
 		}
-		return false;
+		return boardString;
 	}
 }
