@@ -1,7 +1,6 @@
 package ubc.cosc322;
 import java.util.*;
 
-import ubc.cosc322.COSC322Test;
 
 /**
  * @author Vaughn Janes, Nick McGee, Erik Johnston, Ann Ni 
@@ -9,7 +8,6 @@ import ubc.cosc322.COSC322Test;
  */
 public class Board {
 	private int[][] board;
-	private COSC322Test game;
 	
 	/**
 	 * Default constructor. The class won't work properly if this constructor is used and the inner board field is never set,
@@ -21,9 +19,8 @@ public class Board {
 	/** Constructor for the one-dimensional ArrayList<Integer> format.
 	 * @param gamestate board in one-dimensional format.
 	 */
-	public Board(ArrayList<Integer> gamestate, COSC322Test game) {
+	public Board(ArrayList<Integer> gamestate) {
 		this.board = convertTo2DArray(gamestate);
-		this.game = game;
 	}
 	
 	/** Constructor for 2D int array.
@@ -49,13 +46,27 @@ public class Board {
 	}
 	
 	/** Getter method for inner board variable.
-	 * @return the board as a primitive 2D int array.
+	 * @return the board as a primitive 2D int array WITH ELEMENTS AT CONVENTIONAL COORDINATES.
 	 */
 	public int[][] getBoard(){
 		return board;
 	}
 	
-	/**
+	/** TAKES CONVENTIONAL ARRAY-COORDINATE INPUT.
+	 * @param x int x coordinate
+	 * @param y int y coordinate
+	 * @return True if successful, else false.
+	 */
+	public boolean set(int x, int y, int val) {
+		if (x > 0 && y > 0 && x < 11 && y < 11) { //Checks if coords "out of bounds" (quotation marks, because 0th column and 0th row do exist but count as being out of bounds)
+			board[x][y] = val;
+			return true;
+		}
+		else
+			return false;
+	}
+	
+	/** TAKES CONVENTIONAL ARRAY-COORDINATE INPUT.
 	 * @param x int x coordinate
 	 * @param y int y coordinate
 	 * @return The value of the game board at coords x, y. Returns -1 if out of bounds.
@@ -77,7 +88,7 @@ public class Board {
 		for (int y = 0; y < board.length; y++)
 			for (int x = 0; x < board[y].length; x++)
 				if (board[x][y] == team)
-					queenLocations.add(new int[] {y, x});
+					queenLocations.add(new int[] {x, y});
 					
 		return queenLocations;
 	}
@@ -89,14 +100,18 @@ public class Board {
 	public static int[][] convertTo2DArray(ArrayList<Integer> board){
 		int[][] newBoard = new int[11][11];
 		
-		for (int y = 0; y < 11; y++)
-			for (int x = 0; x < 11; x++) 
-				newBoard[y][x] = board.get(y*11 + x);
-
+		//Don't touch this hackjob (It converts the server's retarded one-dimensional gamestate array into one that isn't upside down. Also moves the obsolete row back to the top of the 2D array after flipping.)
+		for (int y = 1; y < 11; y++)
+			for (int x = 0; x < 11; x++)
+				newBoard[x][11 - y] = board.get(y*11 + x);
+		//moving obsolete row back to the top:
+		for (int x = 0; x < 11; x++)
+			newBoard[x][0] = board.get(x);
+		
 		return newBoard;
 	}
 	
-	/** Updates the board class with new moves
+	/** Updates the board class with new moves. TAKES CONVENTIONAL ARRAY-COORDINATE INPUT.
 	 * @param qx1 Original queen x position
 	 * @param qy1 Original queen y position
 	 * @param qx2 New queen x position
@@ -105,25 +120,20 @@ public class Board {
 	 * @param ax Arrow position
 	 * @return True if move within range of board, false if move is not within range of the board
 	 */
-	public void movePiece(int qx1, int qy1, int qx2, int qy2, int ax, int ay, int colour) {
+	public boolean movePiece(int qx1, int qy1, int qx2, int qy2, int ax, int ay, int colour) {
 		// NOTE: Commented out if because it was rejecting some moves that it shouldn't
 		
-//		if (qx1 <= 10 && qx1 > 0 && qy1 < 10 && qy1 > 0) {
-			int[][] newBoard = board;
-			newBoard[qx1][qy1] = 0;
-			if (newBoard[qx2][qy2] == 0) {
-				newBoard[qx2][qy2] = colour;
-			}
-			newBoard[ax][ay] = 3;
-
-			setBoard(newBoard);
+		if (qx1 <= 10 && qx1 > 0 && qy1 <= 10 && qy1 > 0) {
+			board[qx1][qy1] = 0;			//delete queen from original place
+			board[qx2][qy2] = colour;		//recreate queen at new place
+			board[ax][ay] = 3;				//put arrow at arrow coords
 			
-//			System.out.println("From board: Move made.");
-//			return true;
-//		}
+			System.out.println("From Board: Move made.");
+			return true;
+		}
 		
-//		System.out.println("From board: Move not made.");
-//		return false;
+		System.err.println("From Board: Move not made.");
+		return false;
 	}
 	
 	/** 
@@ -131,12 +141,12 @@ public class Board {
 	 * @return A string that represents the game board. 1 = black, 2 = white, 3 = arrow
 	 */
 	public String toString() {
-		String boardString = "";
-		for(int i = 10; i > 0; i--) {
-			for(int j = 1; j < 11; j++) 
-				boardString += Integer.toString((board[i][j]));
-			boardString += "\n";
+		StringBuilder boardString = new StringBuilder();
+		for(int y = 1; y < 11; y++) {
+			for(int x = 1; x < 11; x++) 
+				boardString.append(Integer.toString((board[x][y])));
+			boardString.append("\n");
 		}
-		return boardString;
+		return boardString.toString();
 	}
 }
