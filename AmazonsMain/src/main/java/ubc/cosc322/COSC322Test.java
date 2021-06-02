@@ -185,7 +185,7 @@ public class COSC322Test extends GamePlayer {
         
         // Send that play to the server, and then update our board with that move.
         sendPlay(randomMove[0], randomMove[1], randomMove[2], randomMove[3], randomMove[4], randomMove[5]);
-        board.movePiece(randomMove[0], randomMove[1], randomMove[2], randomMove[3], randomMove[4], randomMove[5], ourTeam);
+        board.movePiece(randomMove[1], randomMove[0], randomMove[3], randomMove[2], randomMove[5], randomMove[4], ourTeam);
         
         // Print out that we made a move, and which move we made
         System.out.println("\n\nWe made a move:\n=====================");
