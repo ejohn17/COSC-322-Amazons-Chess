@@ -4,13 +4,11 @@ package ubc.cosc322;
 import java.util.ArrayList;
 import java.util.Map;
 
-import sfs2x.client.entities.Room;
 import ygraph.ai.smartfox.games.BaseGameGUI;
 import ygraph.ai.smartfox.games.GameClient;
 import ygraph.ai.smartfox.games.GameMessage;
 import ygraph.ai.smartfox.games.GamePlayer;
 import ygraph.ai.smartfox.games.amazons.AmazonsGameMessage;
-import ubc.cosc322.Board;
 
 /**
  * An example illustrating how to implement a GamePlayer
@@ -84,7 +82,8 @@ public class COSC322Test extends GamePlayer {
         }
     }
 
-    @Override
+    @SuppressWarnings("unchecked")
+	@Override
     public boolean handleGameMessage(String messageType, Map<String, Object> msgDetails) {
         // This method will be called by the GameClient when it receives a game-related
         // message
@@ -101,18 +100,28 @@ public class COSC322Test extends GamePlayer {
             ArrayList<Integer> queenposNew = (ArrayList<Integer>) msgDetails.get(AmazonsGameMessage.Queen_POS_NEXT);
             ArrayList<Integer> arrowPos = (ArrayList<Integer>) msgDetails.get(AmazonsGameMessage.ARROW_POS);
             
+            // Their exact move: (Useful for debugging)
+            System.out.println("Enemy Queen inital position: [y:" + queenpos.get(0) + ", x:" + queenpos.get(1) + "]");
+            System.out.println("Enemy Queen new position: [y:" + queenposNew.get(0) + ", x:" + queenposNew.get(1) + "]");
+            System.out.println("Enemy Arrow position: [y:" + arrowPos.get(0) + ", x:" + arrowPos.get(1) + "]");
+            
+            //This is up here so that it can be detected before updating the Board (do not move this chunk to be after the board is updated or it'll probs break)
+            boolean illegalMoveMade = !checkIfMoveIsValid(queenpos.get(1), 11 - queenpos.get(0), queenposNew.get(1), 11 - queenposNew.get(0), arrowPos.get(1), 11 - arrowPos.get(0));
+            if (illegalMoveMade) {
+            	for (int i = 0; i < 10; i ++) {
+                	System.out.println("WEE WOO WEE WOO WEE WOO WEE WOO WEE WOO WEE WOO WEE WOO WEE WOO WEE WOO WEE WOO WEE WOO WEE WOO!!!!!!!!!!!!!!!!!!!!!");
+                	System.out.println("==============================I L L E G A L    M O V E   D E T E C T E D==============================");
+            	}
+            	return false;
+            }
+            
             // Update the board and GUI with the opposing player's move
-            board.movePiece(queenpos.get(0), queenpos.get(1), queenposNew.get(0), queenposNew.get(1), arrowPos.get(0), arrowPos.get(1), this.otherTeam);
+            board.movePiece(queenpos.get(1), 11 - queenpos.get(0), queenposNew.get(1), 11 - queenposNew.get(0), arrowPos.get(1), 11 - arrowPos.get(0), this.otherTeam);
             gamegui.updateGameState(queenpos, queenposNew, arrowPos);
             
             // Print out their move
             System.out.println("\n\nOther player made a move:\n=====================");
             System.out.println(board.toString());
-            
-            // Their exact move: (Useful for debugging)
-            System.out.println("Enemy Queen inital position: [x:" + queenpos.get(1) + ", y:" + queenpos.get(0) + "]");
-            System.out.println("Enemy Queen new position: [x:" + queenposNew.get(1) + ", y:" + queenposNew.get(0) + "]");
-            System.out.println("Enemy Arrow position: [x:" + arrowPos.get(1) + ", y:" + arrowPos.get(0) + "]");
             
             // After enemy has made their move, we make our move
             makeMove();
@@ -166,12 +175,10 @@ public class COSC322Test extends GamePlayer {
     		// If we're black team, we make the first move
     		if(ourTeam == 1) 
 	        	makeMove();
-    		
         }
         
         return true;
     }
-    
     
     /**Gets all possible moves for your team, and then sends that move to the server.
      * 
@@ -185,34 +192,114 @@ public class COSC322Test extends GamePlayer {
         
         // Send that play to the server, and then update our board with that move.
         sendPlay(randomMove[0], randomMove[1], randomMove[2], randomMove[3], randomMove[4], randomMove[5]);
-        board.movePiece(randomMove[1], randomMove[0], randomMove[3], randomMove[2], randomMove[5], randomMove[4], ourTeam);
+        board.movePiece(randomMove[0], randomMove[1], randomMove[2], randomMove[3], randomMove[4], randomMove[5], ourTeam);
         
         // Print out that we made a move, and which move we made
         System.out.println("\n\nWe made a move:\n=====================");
         System.out.println(board.toString());    
-        System.out.println("Inital queen position: [x:" + randomMove[0] + ", y:" + randomMove[1] + "]");
-        System.out.println("New queen position: [x:" + randomMove[2] + ", y:" + randomMove[3] + "]");
-        System.out.println("Arrow position: [x:" + randomMove[4] + ", y:" + randomMove[5] + "]");
+        System.out.println("Inital queen position: [y:" + (11 - randomMove[1]) + ", x:" + randomMove[0] + "]"); //These output the coordinates in the game's backward ass coordinate notation
+        System.out.println("New queen position: [y:" + (11 - randomMove[3]) + ", x:" + randomMove[2] + "]");
+        System.out.println("Arrow position: [y:" + (11 - randomMove[5]) + ", x:" + randomMove[4] + "]");
 
 	}
+
+	/** An overly complicated method (but much more efficient than the original, simpler idea) to detect whether or not a move is legal
+     *  Make sure not to update the game board until after this check is done. TAKES CONVENTIONAL COORDINATE INPUT
+     * @param qx1
+     * @param qy1
+     * @param qx2
+     * @param qy2
+     * @param ax
+     * @param ay
+     * @return True if move is valid, else false.
+     */
+    public boolean checkIfMoveIsValid(int qx1, int qy1, int qx2, int qy2, int ax, int ay) {
+    	boolean isQueenMoveLegit = checkIfMoveIsValidHelper(qx1, qy1, qx2, qy2); //Returns true if and no obstructions between queen's original tile and her new tile
+    	int temp = board.get(qx1, qy1); //Temporarily set qx1, qy1 blank
+    	board.set(qx1, qy1, 0); //Clear the tile qx1, qy1
+    	boolean isArrowShotLegit = checkIfMoveIsValidHelper(qx2, qy2, ax, ay); //Returns true if no obstructions between queen's new tile and her arrow shot (excluding the tile whence she came)
+    	board.set(qx1, qy1, temp); //Reinstate qx1, qy1
+    	return isQueenMoveLegit && isArrowShotLegit;
+    }
+    
+    public boolean checkIfMoveIsValidHelper(int x1, int y1, int x2, int y2) {
+    	int deltaX = x2 - x1;
+    	int deltaY = y2 - y1;
+    	int deltaXAbs = Math.abs(deltaX);
+    	int deltaYAbs = Math.abs(deltaY);
+    	
+    	if (	1 > x1 || x1 > 10 && 
+    			1 > y1 || y1 > 10 &&
+    			1 > x2 || x2 > 10 &&
+    			1 > y2 || y2 > 10)
+    		return false;
+
+    	//if deltaX = deltaY then the move must have been diagonal which is good.
+    	//if only one of them equals 0 then it's a horizontal/vertical move which is good
+    	//if BOTH of them equal zero then it's illegal (you're not allowed to move to the same place)
+    	boolean didNotMove = (deltaXAbs == 0 && deltaYAbs == 0);
+    	boolean isDiagonal = ((deltaXAbs == deltaYAbs) && !didNotMove);
+    	boolean isHorizontalOrVertical = (deltaXAbs == 0 ^ deltaYAbs == 0);
+    	if (!isDiagonal && !isHorizontalOrVertical) //the didNotMove might not be neccessary here
+    		return false;
+    	
+    	
+    	int xStep, yStep;
+    	//Now to check if the queen/arrow ran anything over
+    	if (isDiagonal) {
+    		xStep = deltaX/deltaXAbs;
+    		yStep = deltaY/deltaYAbs;
+    	}
+    	else { //must be horizontal or vertical
+    		if (deltaX == 0) {
+    			xStep = deltaX;
+    			yStep = deltaY/Math.abs(deltaY);
+    		}
+    		else {
+    			yStep = deltaY;
+    			xStep = deltaX/Math.abs(deltaX);
+    		}
+    	}
+    	
+    	if (Math.abs(xStep) > 1 || Math.abs(yStep) > 1) {
+    		System.err.println("WARNING: Move-validity checker cannot work properly because xStep or yStep is not between -1 and 1. That's probably due to a programming error in the checkIfMoveIsValidHelper method.");
+    		return true; //it has to perhaps falsely return true (better than falsely reporting an invalid move) so that it doesn't get caught in an infinite loop. Throwing an exception seemed to be too complicated.
+    	}
+    
+    	int iteration = 0;
+    	while (x1 + xStep*iteration != x2 || y1 + yStep*iteration != y2) {
+    		iteration++;
+    		if (board.get(x1 + xStep*iteration, y1 + yStep*iteration) != 0)
+        		return false;
+    	}
+    	return true;
+    }
     
 
     //Note to selves: With the way the getAllPossibleMoves is coded, it probably won't let itself move a queen and then shoot an arrow onto the tile that the queen moved from (because it thinks there's an obstacle there)
     //which will be a problem in the end-game scenario
     
-    /**Returns a big list of int arrays of length 6, in the format { qx1, qy1, qx2, qy2, ax, ay }
+    /**
      * Make sure the global field thing, board (a 2D int array version of gamestate), is up to date when calling this.
      * @param team
-     * @return
+     * @return a big list of int arrays of length 6, in the format { qx1, qy1, qx2, qy2, ax, ay } IN THE CONVENTIONAL COORDINATE FORMAT (y=1 is at the top of the board)
      */
     public ArrayList<int[]> getAllPossibleMoves(int team){
     	ArrayList<int[]> movesList = new ArrayList<>();
-    	for (int[] curQueenCoords : board.getQueenCoords(team)) {
-    		ArrayList<int[]> allMovesForCurrentQueen = getAllPossibleMovesHelper(curQueenCoords[0], curQueenCoords[1]);
+    	ArrayList<int[]> allQueenPositions = board.getQueenCoords(team);
+    	for (int[] curQueenPosition : allQueenPositions) {
+    		ArrayList<int[]> allMovesForCurrentQueen = getAllPossibleMovesHelper(curQueenPosition[0], curQueenPosition[1]);
     		for (int[] potentialMoveForCurQueen : allMovesForCurrentQueen) {
+    			/* The following two lines save and wipe the value of the current queen being considered's original tile,
+    			 * so that it can be temporarily considered blank whilst the potential tiles at which her arrow can be shot from her new position are being added to the list.
+    			 * The tile value is saved so that it can be reinstated after the potential arrow shots from this potential new position are done being considered.
+    			 */
+            	int temp = board.get(curQueenPosition[0], curQueenPosition[1]);
+            	board.set(curQueenPosition[0], curQueenPosition[1], 0);
     			ArrayList<int[]> allArrowsForCurrentMove = getAllPossibleMovesHelper(potentialMoveForCurQueen[0], potentialMoveForCurQueen[1]);
+    			board.set(curQueenPosition[0], curQueenPosition[1], temp); //Reinstating queen's original tile.
     			for (int[] arrow : allArrowsForCurrentMove)
-    				movesList.add(new int[] { curQueenCoords[0], curQueenCoords[1], potentialMoveForCurQueen[0], potentialMoveForCurQueen[1], arrow[0], arrow[1] });
+    				movesList.add(new int[] { curQueenPosition[0], curQueenPosition[1], potentialMoveForCurQueen[0], potentialMoveForCurQueen[1], arrow[0], arrow[1] });
     		}
     	}
 		return movesList;
@@ -257,15 +344,15 @@ public class COSC322Test extends GamePlayer {
 
     public void sendPlay(int qx1, int qy1, int qx2, int qy2, int ax, int ay) {
     	ArrayList<Integer> queenStart = new ArrayList<Integer>();
-    	queenStart.add(qy1);
+    	queenStart.add(11 - qy1);
     	queenStart.add(qx1);
     	
     	ArrayList<Integer> queenEnd = new ArrayList<Integer>();
-    	queenEnd.add(qy2);
+    	queenEnd.add(11 - qy2);
     	queenEnd.add(qx2);
     	
     	ArrayList<Integer> arrow = new ArrayList<Integer>();
-    	arrow.add(ay);
+    	arrow.add(11 - ay);
     	arrow.add(ax);
     	
     	this.gameClient.sendMoveMessage(queenStart, queenEnd, arrow);
