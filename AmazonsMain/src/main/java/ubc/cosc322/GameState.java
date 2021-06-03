@@ -6,6 +6,7 @@ public class GameState {
 	private int[] action; //The action taken to get to this game state from its parent
 	private Board board;
 	private double value = 0;
+	private int visits = 0;
 	private ArrayList<GameState> children = new ArrayList<>();;
 	private boolean childrenGenerated = false;
 	
@@ -20,8 +21,15 @@ public class GameState {
 		this.board = board;
 	}
 	
-	/** @return The action taken to get to this GameState from its parent GameState. */
+	/** @return The value of the current GameState. */
 	public double getValue() { return value; }
+	
+    /** @return The number of times this GameState has been visited by it's parent */
+	public int getVisits() { return visits; }
+
+    /** @param visits The number of visits this GameState has been visited by it's parent
+     ** @return void*/
+	public void setVisits(int visits) { this.visits = visits; }
 	
 	/** @return The action taken to get to this GameState from its parent GameState. */
 	public int[] getAction() { return action; }
