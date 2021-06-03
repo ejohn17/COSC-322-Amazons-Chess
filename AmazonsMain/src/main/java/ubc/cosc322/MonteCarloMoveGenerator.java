@@ -19,13 +19,15 @@ public class MonteCarloMoveGenerator {
 	 * @return The potential action deemed best, given the provided GameState.
 	 */
 	public int[] monteCarloTreeSearch(GameState root) {
-		long startTime = System.currentTimeMillis();
-		long currentTime = System.currentTimeMillis();
+		double startTime = (double) (System.currentTimeMillis() / 1000);   // divide by 1000 to get from milliseconds to seconds
+		double currentTime = (double) (System.currentTimeMillis() / 1000);
 		
-		while (currentTime - startTime < timeAlotted) {
+		while ((currentTime - startTime) < timeAlotted) {
 			int[] leaf = traverse(root);
 			int simulation_result = rollout(leaf);
 			backpropagate(leaf, simulation_result);
+			
+			currentTime = (double) (System.currentTimeMillis() / 1000);
 		}
 		return bestChild(root).getAction();
 	}
