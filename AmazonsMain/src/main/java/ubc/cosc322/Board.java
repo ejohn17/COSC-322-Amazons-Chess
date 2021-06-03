@@ -120,13 +120,13 @@ public class Board {
 	 * @param ax Arrow position
 	 * @return True if move within range of board, false if move is not within range of the board
 	 */
-	public boolean movePiece(int qx1, int qy1, int qx2, int qy2, int ax, int ay, int colour) {
-		// NOTE: Commented out if because it was rejecting some moves that it shouldn't
+	public boolean movePiece(int[] move) {
 		
-		if (qx1 <= 10 && qx1 > 0 && qy1 <= 10 && qy1 > 0) {
-			board[qx1][qy1] = 0;			//delete queen from original place
-			board[qx2][qy2] = colour;		//recreate queen at new place
-			board[ax][ay] = 3;				//put arrow at arrow coords
+		if (move[0] <= 10 && move[0] > 0 && move[1] <= 10 && move[1] > 0) {
+			int queen = board[move[0]][move[1]];		//save board value at queen's original place
+			board[move[0]][move[1]] = 0;				//delete queen from original place
+			board[move[2]][move[3]] = queen;			//recreate queen at new place
+			board[move[4]][move[5]] = 3;				//put arrow at arrow coords
 			
 			System.out.println("From Board: Move made.");
 			return true;
@@ -149,4 +149,139 @@ public class Board {
 		}
 		return boardString.toString();
 	}
+	
+    /**
+     * Make sure the global field thing, board (a 2D int array version of gamestate), is up to date when calling this.
+     * @param team
+     * @return a big list of int arrays of length 6, in the format { qx1, qy1, qx2, qy2, ax, ay } IN THE CONVENTIONAL COORDINATE FORMAT (y=1 is at the top of the board)
+     */
+    public ArrayList<int[]> getAllPossibleMoves(int team){
+    	ArrayList<int[]> movesList = new ArrayList<>();
+    	ArrayList<int[]> allQueenPositions = this.getQueenCoords(team);
+    	for (int[] curQueenPosition : allQueenPositions) {
+    		ArrayList<int[]> allMovesForCurrentQueen = getAllPossibleMovesHelper(curQueenPosition[0], curQueenPosition[1]);
+    		for (int[] potentialMoveForCurQueen : allMovesForCurrentQueen) {
+    			/* The following two lines save and wipe the value of the current queen being considered's original tile,
+    			 * so that it can be temporarily considered blank whilst the potential tiles at which her arrow can be shot from her new position are being added to the list.
+    			 * The tile value is saved so that it can be reinstated after the potential arrow shots from this potential new position are done being considered.
+    			 */
+            	int temp = this.get(curQueenPosition[0], curQueenPosition[1]);
+            	this.set(curQueenPosition[0], curQueenPosition[1], 0);
+    			ArrayList<int[]> allArrowsForCurrentMove = getAllPossibleMovesHelper(potentialMoveForCurQueen[0], potentialMoveForCurQueen[1]);
+    			this.set(curQueenPosition[0], curQueenPosition[1], temp); //Reinstating queen's original tile.
+    			for (int[] arrow : allArrowsForCurrentMove)
+    				movesList.add(new int[] { curQueenPosition[0], curQueenPosition[1], potentialMoveForCurQueen[0], potentialMoveForCurQueen[1], arrow[0], arrow[1] });
+    		}
+    	}
+		return movesList;
+    }
+    
+    /**
+     * @param x
+     * @param y
+     * @return A list of all tiles that can possibly be reached in a straight line from the provided coordinates
+     */
+    public ArrayList<int[]> getAllPossibleMovesHelper(int x, int y){
+    	ArrayList<int[]> list = new ArrayList<>();
+    	list.addAll(getAllPossibleMovesHelperHelper(x, y, 0, -1, new ArrayList<int[]>()));	//Up
+    	list.addAll(getAllPossibleMovesHelperHelper(x, y, 1, -1, new ArrayList<int[]>()));	//Up-right
+    	list.addAll(getAllPossibleMovesHelperHelper(x, y, 1, 0, new ArrayList<int[]>()));	//Right
+    	list.addAll(getAllPossibleMovesHelperHelper(x, y, 1, 1, new ArrayList<int[]>()));	//Down-right
+    	list.addAll(getAllPossibleMovesHelperHelper(x, y, 0, 1, new ArrayList<int[]>()));	//Down
+    	list.addAll(getAllPossibleMovesHelperHelper(x, y, -1, 1, new ArrayList<int[]>()));	//Down-left
+    	list.addAll(getAllPossibleMovesHelperHelper(x, y, -1, 0, new ArrayList<int[]>()));	//Left
+    	list.addAll(getAllPossibleMovesHelperHelper(x, y, -1, -1, new ArrayList<int[]>()));	//Up-left
+    	return list;
+    }
+    
+    
+    /** Returns an ArrayList of coordinates (as int arrays of size 2, all in ascending order by distance from starting point) 
+     *	that can be reached from starting coordinates (x, y) while taking horizontal/vertical/diagonal steps of size xInc and yInc respectively, before an obstacle is hit.
+     * @param x		Starting x coordinate
+     * @param xInc	Amount by which to increment x coordinate with each step
+     * @param y		Starting y coordinate
+     * @param yInc	Amount by which to increment y coordinate with each step
+     * @param list	Please provide an empty list (for tail recursion).
+     * @return
+     */
+    public ArrayList<int[]> getAllPossibleMovesHelperHelper(int x, int y, int xInc, int yInc, ArrayList<int[]> list){
+    	if (this.get(x + xInc, y + yInc) == 0) {									//Checking if current spot being examined is empty. 
+    		list.add(new int[]{x + xInc, y + yInc});								//If so, add it to list,
+    		return getAllPossibleMovesHelperHelper(x + xInc, y + yInc, xInc, yInc, list); //and recurse, passing along list and incrementing x & y
+    	}
+    	else	//If current spot is taken or out of bounds, returns the list.
+    		return list;
+    }
+    
+	/** An overly complicated method (but much more efficient than the original, simpler idea) to detect whether or not a move is legal
+     *  Make sure not to update the game board until after this check is done. TAKES CONVENTIONAL COORDINATE INPUT
+     * @param qx1
+     * @param qy1
+     * @param qx2
+     * @param qy2
+     * @param ax
+     * @param ay
+     * @return True if move is valid, else false.
+     */
+    public boolean checkIfMoveIsValid(int qx1, int qy1, int qx2, int qy2, int ax, int ay) {
+    	boolean isQueenMoveLegit = checkIfMoveIsValidHelper(qx1, qy1, qx2, qy2); //Returns true if and no obstructions between queen's original tile and her new tile
+    	int temp = this.get(qx1, qy1); //Temporarily set qx1, qy1 blank
+    	this.set(qx1, qy1, 0); //Clear the tile qx1, qy1
+    	boolean isArrowShotLegit = checkIfMoveIsValidHelper(qx2, qy2, ax, ay); //Returns true if no obstructions between queen's new tile and her arrow shot (excluding the tile whence she came)
+    	this.set(qx1, qy1, temp); //Reinstate qx1, qy1
+    	return isQueenMoveLegit && isArrowShotLegit;
+    }
+    
+    public boolean checkIfMoveIsValidHelper(int x1, int y1, int x2, int y2) {
+    	int deltaX = x2 - x1;
+    	int deltaY = y2 - y1;
+    	int deltaXAbs = Math.abs(deltaX);
+    	int deltaYAbs = Math.abs(deltaY);
+    	
+    	if (	1 > x1 || x1 > 10 && 
+    			1 > y1 || y1 > 10 &&
+    			1 > x2 || x2 > 10 &&
+    			1 > y2 || y2 > 10)
+    		return false;
+
+    	//if deltaX = deltaY then the move must have been diagonal which is good.
+    	//if only one of them equals 0 then it's a horizontal/vertical move which is good
+    	//if BOTH of them equal zero then it's illegal (you're not allowed to move to the same place)
+    	boolean didNotMove = (deltaXAbs == 0 && deltaYAbs == 0);
+    	boolean isDiagonal = ((deltaXAbs == deltaYAbs) && !didNotMove);
+    	boolean isHorizontalOrVertical = (deltaXAbs == 0 ^ deltaYAbs == 0);
+    	if (!isDiagonal && !isHorizontalOrVertical) //the didNotMove might not be neccessary here
+    		return false;
+    	
+    	
+    	int xStep, yStep;
+    	//Now to check if the queen/arrow ran anything over
+    	if (isDiagonal) {
+    		xStep = deltaX/deltaXAbs;
+    		yStep = deltaY/deltaYAbs;
+    	}
+    	else { //must be horizontal or vertical
+    		if (deltaX == 0) {
+    			xStep = deltaX;
+    			yStep = deltaY/Math.abs(deltaY);
+    		}
+    		else {
+    			yStep = deltaY;
+    			xStep = deltaX/Math.abs(deltaX);
+    		}
+    	}
+    	
+    	if (Math.abs(xStep) > 1 || Math.abs(yStep) > 1) {
+    		System.err.println("WARNING: Move-validity checker cannot work properly because xStep or yStep is not between -1 and 1. That's probably due to a programming error in the checkIfMoveIsValidHelper method.");
+    		return true; //it has to perhaps falsely return true (better than falsely reporting an invalid move) so that it doesn't get caught in an infinite loop. Throwing an exception seemed to be too complicated.
+    	}
+    
+    	int iteration = 0;
+    	while (x1 + xStep*iteration != x2 || y1 + yStep*iteration != y2) {
+    		iteration++;
+    		if (this.get(x1 + xStep*iteration, y1 + yStep*iteration) != 0)
+        		return false;
+    	}
+    	return true;
+    }
 }
