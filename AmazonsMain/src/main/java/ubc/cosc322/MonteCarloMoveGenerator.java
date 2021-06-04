@@ -16,12 +16,16 @@ public class MonteCarloMoveGenerator {
 	private Board board;
 	private long timeAlotted = 29;
 	private int ourTeam;
+	private int otherTeam;
 	
 	
 	/* Constructor */
 	public MonteCarloMoveGenerator(Board board, int ourTeam) {
 		this.board = board;
 		this.ourTeam = ourTeam;
+		
+		if(this.ourTeam == 1) otherTeam = 2;
+		else otherTeam = 1;
 	}
 
 	
@@ -51,31 +55,49 @@ public class MonteCarloMoveGenerator {
 	 * @return The child of the provided node with the highest UCB value. Returns null if there are no children.
 	 */
 	private GameState bestChild(GameState root) {
-		double highestValue = Double.MIN_VALUE;
 		GameState bestChild = null;
 		int rootVisits = root.getVisits();
 		
-		for (GameState child : root.getChildren(ourTeam)) {
-			double UCBvalue = getUCB(rootVisits, child.getValue(), child.getVisits());
-			if (UCBvalue > highestValue)
-				bestChild = child;
+		// Our turn (maximize value)
+		if(root.getDepth() % 2 == 0) {
+			double highestValue = Double.MIN_VALUE;
+
+			for (GameState child : root.getChildren(ourTeam)) {
+				double UCBvalue = getUCB(rootVisits, child.getValue(), child.getVisits(), Double.MIN_VALUE);
+				if (UCBvalue > highestValue)
+					bestChild = child;
+			}
+			
+			return bestChild;
+		} 
+		// Their turn (minimize value)
+		else {
+			double lowestValue = Double.MAX_VALUE;
+
+			for (GameState child : root.getChildren(otherTeam)) {
+				double UCBvalue = getUCB(rootVisits, child.getValue(), child.getVisits(), Double.MAX_VALUE);
+				if (UCBvalue < lowestValue)
+					bestChild = child;
+			}
+			
+			return bestChild;
 		}
-		
-		return bestChild;
+
 	}
 	
 	
 	/** Calculates the UCB value of a root's children using the formula: childValue + (C * sqrt( ln(rootVisits) / childVisits))
 	 * @param rootVisits The total visits of a root's children
 	 * @param childValue The value of the child from simulation
+	 * @param minMax The theoretical min or max value for UCB
 	 * @return A double of the calculated UCB value for the child node
 	 */
-	private double getUCB(int rootVisits, double childValue, int childVisits) {
+	private double getUCB(int rootVisits, double childValue, int childVisits, double minMax) {
 		// Note: C is a constant that can be changed at the top of the file
 		if(childVisits != 0)
 			return childValue + (C * Math.sqrt( (Math.log(rootVisits)) / childVisits ));
 		else
-			return Double.MIN_VALUE;
+			return minMax;
 	}
 
 	

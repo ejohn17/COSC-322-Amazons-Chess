@@ -13,8 +13,9 @@ public class GameState {
 	
 	
 	/* Constructors */
-	public GameState(int[] action, GameState parent) {
+	public GameState(int[] action, GameState parent, int depth) {
 		this.action = action;
+		this.depth = depth;
 		board = parent.getBoard();
 		board.movePiece(action);
 	}
@@ -72,7 +73,7 @@ public class GameState {
 	public ArrayList<GameState> getChildren(int team) {
 		if (!childrenGenerated) {
 			for (int[] action : board.getAllPossibleMoves(team))
-				children.add(new GameState(action, this));
+				children.add(new GameState(action, this, this.getDepth() + 1));
 			childrenGenerated = true;
 		}
 		return children;
