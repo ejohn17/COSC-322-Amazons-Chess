@@ -1,9 +1,14 @@
 package ubc.cosc322;
 
+import java.lang.Math;
+
 /**
  *	Credit to Rahul_Roy at https://www.geeksforgeeks.org/ml-monte-carlo-tree-search-mcts/ for the pseudocode used as reference while writing this.
  */
 public class MonteCarloMoveGenerator {
+	
+	// This is the constant value for UCB. It can be tweaked.
+	private double C = 2;
 	
 	private Board board;
 	private long timeAlotted = 29;
@@ -34,15 +39,30 @@ public class MonteCarloMoveGenerator {
 	
 	/**
 	 * @param root The parent node.
-	 * @return The child of the provided node with the highest UCT value. Returns null if there are no children.
+	 * @return The child of the provided node with the highest UCB value. Returns null if there are no children.
 	 */
 	private GameState bestChild(GameState root) {
 		double highestValue = Double.MIN_VALUE;
 		GameState bestChild = null;
-		for (GameState s : root.getChildren(ourTeam))
-			 if (s.getValue() > highestValue)
-				 bestChild = s;
+		int rootVisits = root.getVisits();
+		
+		for (GameState child : root.getChildren(ourTeam)) {
+			double UCBvalue = getUCB(rootVisits, child.getValue(), child.getVisits());
+			if (UCBvalue > highestValue)
+				bestChild = child;
+		}
+		
 		return bestChild;
+	}
+	
+	/** Calculates the UCB value of a root's children using the formula: childValue + (C * sqrt( ln(rootVisits) / childVisits))
+	 * @param rootVisits The total visits of a root's children
+	 * @param childValue The value of the child from simulation
+	 * @return A double of the calculated UCB value for the child node
+	 */
+	private double getUCB(int rootVisits, double childValue, int childVisits) {
+		// Note: C is changed at the top of the
+		return childValue + (C * Math.sqrt( (Math.log(rootVisits)) / childVisits ));
 	}
 
 	/*
