@@ -61,8 +61,11 @@ public class MonteCarloMoveGenerator {
 	 * @return A double of the calculated UCB value for the child node
 	 */
 	private double getUCB(int rootVisits, double childValue, int childVisits) {
-		// Note: C is changed at the top of the
-		return childValue + (C * Math.sqrt( (Math.log(rootVisits)) / childVisits ));
+		// Note: C is a constant that can be changed at the top of the file
+		if(childVisits != 0)
+			return childValue + (C * Math.sqrt( (Math.log(rootVisits)) / childVisits ));
+		else
+			return Double.MIN_VALUE;
 	}
 
 	/*

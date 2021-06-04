@@ -31,6 +31,10 @@ public class GameState {
      ** @return void*/
 	public void setVisits(int visits) { this.visits = visits; }
 	
+    /** @param addedVisits How many visits to add onto the current amount of visits
+     ** @return void*/
+	public void incrVisits(int addedVisits) { this.visits = this.visits + addedVisits; }
+	
 	/** @return The action taken to get to this GameState from its parent GameState. */
 	public int[] getAction() { return action; }
 	
