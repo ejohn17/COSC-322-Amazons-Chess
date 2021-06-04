@@ -8,6 +8,7 @@ public class GameState {
 	private double value = 0;
 	private int visits = 0;
 	private int depth = 0;
+	private GameState parent;
 	private ArrayList<GameState> children = new ArrayList<>();;
 	private boolean childrenGenerated = false;
 	
@@ -16,6 +17,7 @@ public class GameState {
 	public GameState(int[] action, GameState parent, int depth) {
 		this.action = action;
 		this.depth = depth;
+		this.parent = parent;
 		board = parent.getBoard();
 		board.movePiece(action);
 	}
@@ -23,6 +25,7 @@ public class GameState {
 	public GameState(Board board) {
 		this.action = null;
 		this.board = board;
+		this.parent = null;
 	}
 	
 	
@@ -30,6 +33,9 @@ public class GameState {
 	
 	/** @return The value of the current GameState. */
 	public double getValue() { return value; }
+	
+	/** @return The parent of the current GameState. */
+	public GameState getParent() { return parent; }
 	
 	
     /** @return The number of times this GameState has been visited by it's parent */
