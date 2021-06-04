@@ -40,7 +40,7 @@ public class MonteCarloMoveGenerator {
 		double currentTime = (double) (System.currentTimeMillis() / 1000);
 		
 		while ((currentTime - startTime) < timeAlotted) {
-			int[] leaf = traverse(root);
+			GameState leaf = traverse(root);
 			int simulation_result = rollout(leaf);
 			backpropagate(leaf, simulation_result);
 			
@@ -110,7 +110,7 @@ public class MonteCarloMoveGenerator {
 		return pick_univisted(node.children) or node 
 	 */
 
-	private int[] traverse(GameState node) {
+	private GameState traverse(GameState node) {
 		while (fullyExpanded(node)) //no idea what this is supposed to mean yet
 			node = bestChild(node);
 		
@@ -118,15 +118,17 @@ public class MonteCarloMoveGenerator {
 	}
 
 	
-	private int rollout(int[] leaf) {
+	private int rollout(GameState leaf) {
 		// TODO Auto-generated method stub
 		return 0;
 	}
 
 	
-	private void backpropagate(int[] leaf, int simulation_result) {
-		// TODO Auto-generated method stub
-		
+	private void backpropagate(GameState node, int simulation_result) {
+		while (node.getParent() != null) {
+			//node.updateValue(simulation_result);
+			backpropagate(node.getParent(), simulation_result);
+		}
 	}
 	
 	
