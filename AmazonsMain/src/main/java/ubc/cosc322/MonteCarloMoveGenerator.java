@@ -63,7 +63,7 @@ public class MonteCarloMoveGenerator {
 			double highestValue = Double.MIN_VALUE;
 
 			for (GameState child : root.getChildren(ourTeam)) {
-				double UCBvalue = getUCB(rootVisits, child.getValue(), child.getVisits(), Double.MIN_VALUE);
+				double UCBvalue = getUCB(rootVisits, child.getValue(), child.getVisits(), Double.MAX_VALUE);
 				if (UCBvalue > highestValue)
 					bestChild = child;
 			}
@@ -75,7 +75,7 @@ public class MonteCarloMoveGenerator {
 			double lowestValue = Double.MAX_VALUE;
 
 			for (GameState child : root.getChildren(otherTeam)) {
-				double UCBvalue = getUCB(rootVisits, child.getValue(), child.getVisits(), Double.MAX_VALUE);
+				double UCBvalue = getUCB(rootVisits, child.getValue(), child.getVisits(), Double.MIN_VALUE);
 				if (UCBvalue < lowestValue)
 					bestChild = child;
 			}
