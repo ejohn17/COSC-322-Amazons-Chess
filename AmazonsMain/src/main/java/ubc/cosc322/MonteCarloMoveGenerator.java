@@ -3,8 +3,11 @@ package ubc.cosc322;
 import java.lang.Math;
 
 /**
- *	Credit to Rahul_Roy at https://www.geeksforgeeks.org/ml-monte-carlo-tree-search-mcts/ for the pseudocode used as reference while writing this.
+ * @author Vaughn Janes, Nick McGee, Erik Johnston, Ann Ni, Rahul_Roy
+ *	A class for the Monte Carlo algorithm for the game board for Game of the Amazons.
+ *  Credit to Rahul_Roy at https://www.geeksforgeeks.org/ml-monte-carlo-tree-search-mcts/ for the pseudocode used as reference while writing this.
  */
+
 public class MonteCarloMoveGenerator {
 	
 	// This is the constant value for UCB. It can be tweaked.
@@ -14,11 +17,16 @@ public class MonteCarloMoveGenerator {
 	private long timeAlotted = 29;
 	private int ourTeam;
 	
+	
+	/* Constructor */
 	public MonteCarloMoveGenerator(Board board, int ourTeam) {
 		this.board = board;
 		this.ourTeam = ourTeam;
 	}
 
+	
+	/* Class functions */
+	
 	/**
 	 * @param root
 	 * @return The potential action deemed best, given the provided GameState.
@@ -36,6 +44,7 @@ public class MonteCarloMoveGenerator {
 		}
 		return bestChild(root).getAction();
 	}
+	
 	
 	/**
 	 * @param root The parent node.
@@ -55,6 +64,7 @@ public class MonteCarloMoveGenerator {
 		return bestChild;
 	}
 	
+	
 	/** Calculates the UCB value of a root's children using the formula: childValue + (C * sqrt( ln(rootVisits) / childVisits))
 	 * @param rootVisits The total visits of a root's children
 	 * @param childValue The value of the child from simulation
@@ -68,6 +78,7 @@ public class MonteCarloMoveGenerator {
 			return Double.MIN_VALUE;
 	}
 
+	
 	/*
 	def traverse(node):
 		while fully_expanded(node):
@@ -84,15 +95,19 @@ public class MonteCarloMoveGenerator {
 		return null;
 	}
 
+	
 	private int rollout(int[] leaf) {
 		// TODO Auto-generated method stub
 		return 0;
 	}
 
+	
 	private void backpropagate(int[] leaf, int simulation_result) {
 		// TODO Auto-generated method stub
 		
 	}
+	
+	
 	
 /* Pseudocode:
 # main function for the Monte Carlo Tree Search
