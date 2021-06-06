@@ -22,6 +22,7 @@ public class MonteCarloMoveGenerator {
 	private int otherTeam;
 	private int currentTeam;
 
+	
 	/* Constructor */
 	public MonteCarloMoveGenerator(Board board, int ourTeam) {
 		this.board = board;
@@ -32,6 +33,7 @@ public class MonteCarloMoveGenerator {
 		else
 			otherTeam = 1;
 	}
+	
 
 	/* Class functions */
 
@@ -53,8 +55,56 @@ public class MonteCarloMoveGenerator {
 		}
 		return bestChild(root).getAction();
 	}
+	
+	
+	/**
+	 * Traverses through the root to find any children that have not been visited. If all children have been visited,
+	 * then it will select the child with the best UCB value and set it as the new root. Continue until an unvisited
+	 * child has been found.
+	 * 
+	 * @param root The root GameState
+	 * @return The leaf to simulate
+	 */
+	private GameState traverse(GameState root) {
+		// Increase root's visits
+		root.incrVisits(1);
+				
+		// Check for unvisited children
+		
+		// Our team
+		if (root.getDepth() % 2 == 0) {
+			if(root.getChildren(ourTeam).isEmpty())
+				return root;
+			
+			for (GameState child : root.getChildren(ourTeam))
+				if(child.getVisits() == 0) {
+					child.incrVisits(1);
+					return child;
+				}
+		}
+		// Their turn
+		else {
+			if(root.getChildren(otherTeam).isEmpty())
+				return root;
+			
+			for (GameState child : root.getChildren(otherTeam))
+				if(child.getVisits() == 0) {
+					child.incrVisits(1);
+					return child;
+				}
+		}
+		
+		// If no unvisited children, expand to the best UCB value
+		return traverse(bestChild(root));
+	}
+	
 
 	/**
+	 * Searches through the children of the root. Utilizes the UCB algorithm
+	 * to determine the best child. Uses the depth of the root to determine if it
+	 * is our turn, or the other team's turn. Will minimize the UCB if it's the 
+	 * other team's turn, and maximize if it's our turn.
+	 * 
 	 * @param root The parent node.
 	 * @return The child of the provided node with the highest UCB value. Returns
 	 *         null if there are no children.
@@ -87,8 +137,8 @@ public class MonteCarloMoveGenerator {
 			currentTeam = otherTeam;
 			return bestChild;
 		}
-
 	}
+	
 
 	/**
 	 * Calculates the UCB value of a root's children using the formula: childValue +
@@ -106,20 +156,7 @@ public class MonteCarloMoveGenerator {
 		else
 			return minMax;
 	}
-
-	/*
-	 * def traverse(node): while fully_expanded(node): node = best_uct(node)
-	 * 
-	 * # in case no children are present / node is terminal return
-	 * pick_univisted(node.children) or node
-	 */
-
-	private GameState traverse(GameState node) {
-		while (fullyExpanded(node)) // no idea what this is supposed to mean yet
-			node = bestChild(node);
-
-		return null;
-	}
+	
 
 	/**
 	 * 
@@ -129,12 +166,14 @@ public class MonteCarloMoveGenerator {
 	private int rollout(GameState leaf) {
 		ArrayList<GameState> children = leaf.getChildren(currentTeam);
 		GameState node = leaf;
+		
 		// while not terminal node continue to rollout and choose a random child
-		while (!children.isEmpty() && children != null) {
+		while (!children.isEmpty() && children != null) 
 			node = rollout_policy(node.getChildren(currentTeam));
-		}
+		
 		return (int) node.getValue();
 	}
+	
 
 	/**
 	 * 
@@ -143,6 +182,7 @@ public class MonteCarloMoveGenerator {
 	 */
 	private GameState rollout_policy(ArrayList<GameState> children) {
 		ArrayList<GameState> unvisited = new ArrayList<GameState>();
+		
 		// get all children which have not been searched yet
 		for (GameState a : children) {
 			unvisited.add(a);
@@ -152,6 +192,7 @@ public class MonteCarloMoveGenerator {
 		return unvisited.get(child);
 	}
 
+	
 	private void backpropagate(GameState node, int simulation_result) {
 		while (node.getParent() != null) {
 			// node.updateValue(simulation_result);
@@ -159,6 +200,7 @@ public class MonteCarloMoveGenerator {
 		}
 	}
 
+	
 	/*
 	 * Pseudocode: # main function for the Monte Carlo Tree Search def
 	 * monte_carlo_tree_search(root):
