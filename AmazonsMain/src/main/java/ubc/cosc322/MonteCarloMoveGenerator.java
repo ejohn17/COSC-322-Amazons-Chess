@@ -163,15 +163,42 @@ public class MonteCarloMoveGenerator {
 	 * @param leaf - leaf node to be rolled out
 	 * @return the terminal node value of this rollout
 	 */
-	private int rollout(GameState leaf) {
-		ArrayList<GameState> children = leaf.getChildren(currentTeam);
-		GameState node = leaf;
+	private int rollout(GameState root) {
+		ArrayList<GameState> children;
+		int depth = 0;
+
+		// Get initial children
+		if(root.getDepth() % 2 == 0) 
+			children = root.getChildren(ourTeam);
+		else 
+			children = root.getChildren(otherTeam);
 		
-		// while not terminal node continue to rollout and choose a random child
-		while (!children.isEmpty() && children != null) 
-			node = rollout_policy(node.getChildren(currentTeam));
+		// Loop until we get to a point where there are no children
+		while (!children.isEmpty() && children != null) {
+			int randomChildIndex = (int) (children.size() * Math.random());
+			depth = children.get(randomChildIndex).getDepth();
+			
+			// Swap between our team and their team based on depth of children
+			if(depth % 2 == 0) 
+				children = children.get(randomChildIndex).getChildren(ourTeam);
+			else
+				children = children.get(randomChildIndex).getChildren(otherTeam);
+		}
 		
-		return (int) node.getValue();
+		// Calculate value
+		int ourMoves;
+		int otherMoves;
+		
+		if(depth % 2 == 0) {
+			ourMoves = 0;
+			otherMoves = children.size();
+		}
+		else {
+			ourMoves = children.size();
+			otherMoves = 0;
+		}
+		
+		return ourMoves - otherMoves;
 	}
 	
 
