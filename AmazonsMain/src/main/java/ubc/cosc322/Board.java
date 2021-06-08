@@ -27,8 +27,22 @@ public class Board {
 	 * @param board gamestate board in 2D int array format.
 	 */
 	public Board(int[][] board) {
-		System.out.println("!!!! - " +  board);
-		this.board = board;
+		//this.board = board;
+		this.board = Arrays.copyOf(board, board.length);  //uncomment this and delete the other line once everything is working
+	}
+	
+	/**
+	 * @param otherBoard The board to return a copy of
+	 * @return A copy of the argued Board.
+	 */
+	public static Board copyOf(Board otherBoard) {
+		int[][] temp = otherBoard.getInnerBoardArray();
+		int[][] newInnerBoard = new int[11][11];
+		for (int i = 0; i < temp.length; i++)
+			for (int j = 0; j < temp[0].length; j++)
+				newInnerBoard[i][j] = Integer.valueOf(temp[i][j]);
+				
+		return new Board(newInnerBoard);
 	}
 	
 	/** Setter method for inner board variable
@@ -42,14 +56,14 @@ public class Board {
 	 * @param board in 2D int array format
 	 */
 	public void setBoard(int[][] board) {
-		this.board = board;
+		this.board = Arrays.copyOf(board, board.length);
 	}
 	
 	/** Getter method for inner board variable.
-	 * @return the board as a primitive 2D int array WITH ELEMENTS AT CONVENTIONAL COORDINATES.
+	 * @return the board, by value, as a primitive 2D int array WITH ELEMENTS AT CONVENTIONAL COORDINATES.
 	 */
-	public int[][] getBoard(){
-		return board;
+	public int[][] getInnerBoardArray(){
+		return Arrays.copyOf(board, board.length);
 	}
 	
 	/** TAKES CONVENTIONAL ARRAY-COORDINATE INPUT.
@@ -59,7 +73,7 @@ public class Board {
 	 */
 	public boolean set(int x, int y, int val) {
 		if (x > 0 && y > 0 && x < 11 && y < 11) { //Checks if coords "out of bounds" (quotation marks, because 0th column and 0th row do exist but count as being out of bounds)
-			board[x][y] = val;
+			board[x][y] = Integer.valueOf(val);
 			return true;
 		}
 		else
@@ -73,7 +87,7 @@ public class Board {
 	 */
 	public int get(int x, int y) {
 		if (x > 0 && y > 0 && x < 11 && y < 11) //Checks if coords "out of bounds" (quotation marks, because 0th column and 0th row count as being out of bounds)
-			return board[x][y];
+			return Integer.valueOf(board[x][y]);
 		else
 			return -1;
 	}
@@ -103,10 +117,10 @@ public class Board {
 		//Don't touch this hackjob (It converts the server's retarded one-dimensional gamestate array into one that isn't upside down. Also moves the obsolete row back to the top of the 2D array after flipping.)
 		for (int y = 1; y < 11; y++)
 			for (int x = 0; x < 11; x++)
-				newBoard[x][11 - y] = board.get(y*11 + x);
+				newBoard[x][11 - y] = Integer.valueOf(board.get(y*11 + x));
 		//moving obsolete row back to the top:
 		for (int x = 0; x < 11; x++)
-			newBoard[x][0] = board.get(x);
+			newBoard[x][0] = Integer.valueOf(board.get(x));
 		
 		return newBoard;
 	}
@@ -121,7 +135,7 @@ public class Board {
 	 * @return True if move within range of board, false if move is not within range of the board
 	 */
 	public boolean movePiece(int[] move) {
-		
+		move = Arrays.copyOf(move, move.length);
 		if (move[0] <= 10 && move[0] > 0 && move[1] <= 10 && move[1] > 0) {
 			int queen = board[move[0]][move[1]];		//save board value at queen's original place
 			board[move[0]][move[1]] = 0;				//delete queen from original place
