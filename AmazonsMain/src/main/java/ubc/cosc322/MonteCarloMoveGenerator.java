@@ -41,6 +41,8 @@ public class MonteCarloMoveGenerator {
 	 * @return The potential action deemed best, given the provided GameState.
 	 */
 	public int[] monteCarloTreeSearch(GameState root) {
+		System.out.println("Starting Monte Carlo Tree Search...");
+		
 		// divide by 1000 to get from milliseconds to seconds
 		double startTime = (double) (System.currentTimeMillis() / 1000);																
 		double currentTime = (double) (System.currentTimeMillis() / 1000);
@@ -51,6 +53,8 @@ public class MonteCarloMoveGenerator {
 			backPropagate(leaf, simulation_result);
 
 			currentTime = (double) (System.currentTimeMillis() / 1000);
+			
+			System.out.printf("Time remaining: %.1f seconds\n", currentTime - startTime);
 		}
 		
 		return bestChild(root).getAction();
@@ -67,6 +71,8 @@ public class MonteCarloMoveGenerator {
 	 * @return The leaf to simulate
 	 */
 	private GameState traverse(GameState root) {
+//		System.out.println("Traversing!");
+		
 		// Increase root's visits
 		root.incrVisits(1);
 				
@@ -170,19 +176,25 @@ public class MonteCarloMoveGenerator {
 	 * @return The terminal node value of the simulation
 	 */
 	private int simulate(GameState root) {
+//		System.out.println("Simulating!");
+		
 		ArrayList<GameState> children;
 		int depth = 0;
-
+		
 		// Get initial children
 		if(root.getDepth() % 2 == 0) 
 			children = root.getChildren(ourTeam);
 		else 
 			children = root.getChildren(otherTeam);
 		
+		System.out.println("Simulate: Children is empty: " + children.isEmpty() + "\n");
+		
 		// Loop until we get to a point where there are no children
-		while (!children.isEmpty() && children != null) {
+		while (!children.isEmpty()) {
 			int randomChildIndex = (int) (children.size() * Math.random());
 			depth = children.get(randomChildIndex).getDepth();
+			
+			System.out.printf("Simulation Depth: %d\n", depth);
 			
 			// Swap between our team and their team based on depth of children
 			if(depth % 2 == 0) 
@@ -225,7 +237,9 @@ public class MonteCarloMoveGenerator {
 	 * @return void
 	 */
 	private void backPropagate(GameState node, int simulation_result) {
-		while (node.getParent() != null) {
+//		System.out.println("Back-propagating!");
+				
+		if(node.getParent() != null) {
 			node.incrValue(simulation_result);
 			backPropagate(node.getParent(), simulation_result);
 		}

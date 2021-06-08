@@ -87,10 +87,16 @@ public class GameState {
 	 */
 	public ArrayList<GameState> getChildren(int team) {
 		if (!childrenGenerated) {
-			for (int[] action : board.getAllPossibleMoves(team))
-				children.add(new GameState(action, this, this.getDepth() + 1));
+			for (int[] action : board.getAllPossibleMoves(team)) {
+				System.out.println("Generating children...");
+				this.children.add(new GameState(action, this, this.getDepth() + 1));
+			}
 			childrenGenerated = true;
+			
+//			System.out.println("Children generated!");
 		}
-		return children;
+		
+//		System.out.println("Children already generated!");
+		return this.children;
 	}
 }

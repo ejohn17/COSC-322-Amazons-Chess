@@ -128,11 +128,11 @@ public class Board {
 			board[move[2]][move[3]] = queen;			//recreate queen at new place
 			board[move[4]][move[5]] = 3;				//put arrow at arrow coords
 			
-			System.out.println("From Board: Move made.");
+//			System.out.println("From Board: Move made.");
 			return true;
 		}
 		
-		System.err.println("From Board: Move not made.");
+//		System.err.println("From Board: Move not made.");
 		return false;
 	}
 	
