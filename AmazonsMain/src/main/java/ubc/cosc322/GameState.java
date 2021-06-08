@@ -31,11 +31,20 @@ public class GameState {
 	
 	/* Getters and Setters */
 	
-	/** @return The value of the current GameState. */
-	public double getValue() { return value; }
-	
 	/** @return The parent of the current GameState. */
 	public GameState getParent() { return parent; }
+	
+	
+	/** @return The value of the current GameState */
+	public double getValue() { return value; }
+	
+	/** @param value The new value of the GameState
+	 *  @return void */
+	public void setValue(int value) { this.value = value; }
+	
+	/** @param addedValue The value to add onto the current value of the GameState
+	 *  @return void */
+	public void incrValue(int addedValue) { this.value = this.value + addedValue; }
 	
 	
     /** @return The number of times this GameState has been visited by it's parent */
