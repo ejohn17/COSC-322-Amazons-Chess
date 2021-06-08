@@ -31,11 +31,20 @@ public class GameState {
 	
 	/* Getters and Setters */
 	
-	/** @return The value of the current GameState. */
-	public double getValue() { return value; }
-	
 	/** @return The parent of the current GameState. */
 	public GameState getParent() { return parent; }
+	
+	
+	/** @return The value of the current GameState */
+	public double getValue() { return value; }
+	
+	/** @param value The new value of the GameState
+	 *  @return void */
+	public void setValue(int value) { this.value = value; }
+	
+	/** @param addedValue The value to add onto the current value of the GameState
+	 *  @return void */
+	public void incrValue(int addedValue) { this.value = this.value + addedValue; }
 	
 	
     /** @return The number of times this GameState has been visited by it's parent */
@@ -78,10 +87,16 @@ public class GameState {
 	 */
 	public ArrayList<GameState> getChildren(int team) {
 		if (!childrenGenerated) {
-			for (int[] action : board.getAllPossibleMoves(team))
-				children.add(new GameState(action, this, this.getDepth() + 1));
+			for (int[] action : board.getAllPossibleMoves(team)) {
+				System.out.println("Generating children...");
+				this.children.add(new GameState(action, this, this.getDepth() + 1));
+			}
 			childrenGenerated = true;
+			
+//			System.out.println("Children generated!");
 		}
-		return children;
+		
+//		System.out.println("Children already generated!");
+		return this.children;
 	}
 }
