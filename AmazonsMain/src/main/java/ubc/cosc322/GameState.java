@@ -58,14 +58,14 @@ public class GameState {
     /** Calculates and returns the UCB value of this node.
      * @return UCB value of this node. */
 	public double getUCB(double C) {
-		if (this.getVisits() == 0)
+		if (this.getVisits() == 0) {
 			ucb = Double.MAX_VALUE;
+		}
 		else
 			ucb = Math.abs(this.getValue()) + (C * Math.sqrt((Math.log(this.parent.getVisits())) / this.getVisits()));
 		
 		if (this.getDepth() % 2 == 0) //If this gamestate is only reachable by an action taken by our enemy, flip its sign.
 			ucb = -ucb;
-		
 		return Double.valueOf(ucb);
 	}
 	

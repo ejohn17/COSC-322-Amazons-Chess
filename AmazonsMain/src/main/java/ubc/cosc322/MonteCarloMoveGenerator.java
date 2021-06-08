@@ -23,7 +23,6 @@ public class MonteCarloMoveGenerator {
 	private int maxDepthReached = 0;
 	private int numberOfTimesAllMovesGenerated = 0;
 
-	
 	/* Constructor */
 	public MonteCarloMoveGenerator(int ourTeam) {
 		this.ourTeam = ourTeam;
@@ -32,7 +31,6 @@ public class MonteCarloMoveGenerator {
 		else
 			otherTeam = 1;
 	}
-	
 
 	/* Class functions */
 
@@ -42,75 +40,77 @@ public class MonteCarloMoveGenerator {
 	 */
 	public int[] monteCarloTreeSearch(GameState root) {
 		System.out.println("Starting Monte Carlo Tree Search...");
-		
+
 		// divide by 1000 to get from milliseconds to seconds
-		startTime = (System.currentTimeMillis() / 1000.);																
+		startTime = (System.currentTimeMillis() / 1000.);
 		double currentTime = (System.currentTimeMillis() / 1000.);
 
 		while ((currentTime - startTime) < timeAlotted) {
 			GameState leaf = traverse(root);
-			if (leaf == null) //This will happen if the search tree is ever fully explored (which would happen at the end of a game, for sure)
+			if (leaf == null) // This will happen if the search tree is ever fully explored (which would
+								// happen at the end of a game, for sure)
 				break;
 			int simulation_result = simulate(leaf);
 			backPropagate(leaf, simulation_result);
 
 			currentTime = (System.currentTimeMillis() / 1000.);
-			
-			System.out.printf("Time elapsed: %2.3fs\tSimulation result: %d\n", currentTime - startTime, simulation_result);
+
+			System.out.printf("Time elapsed: %2.3fs\tSimulation result: %d\n", currentTime - startTime,
+					simulation_result);
 		}
 		System.out.println("Simulations ran: " + simulationsRan);
 		System.out.println("Maximum depth reached: " + maxDepthReached);
 		System.out.printf("UCB of root's best child: %.1f", bestChild(root).getUCB(C));
 		System.out.println("Number of times allMovesGenerated for sims: " + numberOfTimesAllMovesGenerated);
-		System.out.println("Average moves generated per sim: " + numberOfTimesAllMovesGenerated/(double)simulationsRan);
+		System.out.println(
+				"Average moves generated per sim: " + numberOfTimesAllMovesGenerated / (double) simulationsRan);
 		return bestChild(root).getAction();
 	}
-	
-	
+
 	/**
-	 * Traverses through the root to find any children that have not been visited. 
-	 * If all children have been visited, then it will select the child with the 
-	 * best UCB value and set it as the new root. Continue until an unvisited child 
+	 * Traverses through the root to find any children that have not been visited.
+	 * If all children have been visited, then it will select the child with the
+	 * best UCB value and set it as the new root. Continue until an unvisited child
 	 * has been found.
 	 * 
 	 * @param node The root GameState
 	 * @return The leaf to simulate
 	 */
 	private GameState traverse(GameState node) {
-		//System.out.println("Traversing!");
-		//System.out.println("Current board:\n" + node.getBoard().toString());
-				
+		// System.out.println("Traversing!");
+		// System.out.println("Current board:\n" + node.getBoard().toString());
+
 		int teamWhoseTurnIsNext = node.getDepth() % 2 == 0 ? ourTeam : otherTeam;
-		
-		//Is the current node a leaf node?
-		if (node.isExpanded() && node.getChildren(teamWhoseTurnIsNext).size() > 0)
-			//If not a leaf, change current node to the child with best UCB.
-			return traverse(bestChild(node)); 
-		
-		//Is the n value for current node 0?
-		if (node.getVisits() == 0)
-			//If yes, return this node to be simulated.
+		// Is the current node a leaf node?
+		if (node.isExpanded() && node.getChildren(teamWhoseTurnIsNext).size() > 0) {
+			// If not a leaf, change current node to the child with best UCB.
+			return traverse(bestChild(node));
+		}
+
+		// Is the n value for current node 0?
+		if (node.getVisits() == 0) {
+			// If yes, return this node to be simulated.
 			return node;
-		else {
-			//If no, generate all its possible actions and add them to the tree, returning the first new child node to be simulated.
+		} else {
+			// If no, generate all its possible actions and add them to the tree, returning
+			// the first new child node to be simulated.
 			ArrayList<GameState> temp = node.getChildren(teamWhoseTurnIsNext);
-			if (temp.size() > 0)
+			if (temp.size() > 0) {
 				return temp.get(0);
-			else {
-				//This happens when the node is terminal (win or lose)
+			} else {
+				// This happens when the node is terminal (win or lose)
 				return node;
 			}
-				
+
 		}
-			
+
 	}
-	
 
 	/**
-	 * Searches through the children of the root. Utilizes the UCB algorithm
-	 * to determine the best child. Uses the depth of the root to determine if it
-	 * is our turn, or the other team's turn. Will minimize the UCB if it's the 
-	 * other team's turn, and maximize if it's our turn.
+	 * Searches through the children of the root. Utilizes the UCB algorithm to
+	 * determine the best child. Uses the depth of the root to determine if it is
+	 * our turn, or the other team's turn. Will minimize the UCB if it's the other
+	 * team's turn, and maximize if it's our turn.
 	 * 
 	 * @param root The parent node.
 	 * @return The child of the provided node with the highest UCB value. Returns
@@ -125,10 +125,12 @@ public class MonteCarloMoveGenerator {
 
 			for (GameState child : root.getChildren(ourTeam)) {
 				double UCBvalue = child.getUCB(C);
-				if (UCBvalue > highestValue)
+				if (UCBvalue > highestValue) {
+					highestValue = UCBvalue;
 					bestChild = child;
+				}
 			}
-			
+
 			return bestChild;
 		}
 		// Their turn (minimize value)
@@ -137,18 +139,21 @@ public class MonteCarloMoveGenerator {
 
 			for (GameState child : root.getChildren(otherTeam)) {
 				double UCBvalue = child.getUCB(C);
-				if (UCBvalue < lowestValue)
+				if (UCBvalue < lowestValue) {
+					lowestValue = UCBvalue;
 					bestChild = child;
+				}
 			}
-			
+
 			return bestChild;
 		}
 	}
-	
-	
-	/** 
-	 * Runs the simulation process of Monte-Carlo tree search. Takes the Board from the provided GameState and randomly makes moves on it
-	 * for alternating teams, starting with ourTeam if the provided GameState's depth is an even number, and otherwise the otherTeam.
+
+	/**
+	 * Runs the simulation process of Monte-Carlo tree search. Takes the Board from
+	 * the provided GameState and randomly makes moves on it for alternating teams,
+	 * starting with ourTeam if the provided GameState's depth is an even number,
+	 * and otherwise the otherTeam.
 	 * 
 	 * @param node The node that will begin the simulation process
 	 * @return 1 if the winning team is ours, else -1.
@@ -158,52 +163,57 @@ public class MonteCarloMoveGenerator {
 		if (node.getDepth() > maxDepthReached)
 			maxDepthReached = node.getDepth();
 		Board boardToSimulate = Board.copyOf(node.getBoard());
-		//System.out.println("Simulating!");
-		//System.out.println("Board being simulated:\n" + boardToSimulate.toString());
-		//Has imaginary enemy make the first move if the starting state was reached via a move by our team
+		// System.out.println("Simulating!");
+		// System.out.println("Board being simulated:\n" + boardToSimulate.toString());
+		// Has imaginary enemy make the first move if the starting state was reached via
+		// a move by our team
+
 		if (node.getDepth() % 2 == 0)
-			return simulateHelper(boardToSimulate, ourTeam, otherTeam) == ourTeam ? 1 : -1; //Returns 1 if our team won
+			return simulateHelper(boardToSimulate, ourTeam, otherTeam) == ourTeam ? 1 : 0; // Returns 1 if our team won
 		else
-			return simulateHelper(boardToSimulate, otherTeam, ourTeam) == ourTeam ? 1 : -1; //Returns 1 if our team won
+			return simulateHelper(boardToSimulate, otherTeam, ourTeam) == ourTeam ? 1 : 0; // Returns 1 if our team won
 	}
-	
+
 	/**
-	 * @param simBoard Starting board to simulate
-	 * @param currentTeam The first team to make a move
+	 * @param simBoard         Starting board to simulate
+	 * @param currentTeam      The first team to make a move
 	 * @param currentOtherTeam The other team
 	 * @return The number of the team that won.
 	 */
 	private int simulateHelper(Board simBoard, int currentTeam, int currentOtherTeam) {
-		//Generate possible moves
+		// Generate possible moves
 		ArrayList<int[]> allPossibleMoves = simBoard.getAllPossibleMoves(currentTeam);
 		numberOfTimesAllMovesGenerated++;
-		
-		//If no possible moves, the game is lost for the current team, so returns the number of the other team.
-		if (allPossibleMoves.size() == 0) //(base case)
+
+		// If no possible moves, the game is lost for the current team, so returns the
+		// number of the other team.
+		if (allPossibleMoves.size() == 0) {
+			// (base case)
 			return currentOtherTeam;
-		
-		//If there are moves to be made, randomly chooses one.
-		int[] randomMove = allPossibleMoves.get((int)(Math.random() * allPossibleMoves.size()));
+		}
+
+		// If there are moves to be made, randomly chooses one.
+		int[] randomMove = allPossibleMoves.get((int) (Math.random() * allPossibleMoves.size()));
 		simBoard.movePiece(randomMove);
-		
-		allPossibleMoves = null; //Unreferencing to save memory
+
+		allPossibleMoves = null; // Unreferencing to save memory
 		return simulateHelper(simBoard, currentOtherTeam, currentTeam);
 	}
-	
-	
+
 	/**
-	 * Loops from the given node up to the main root node.
-	 * Increases the value of each node by the value of the terminal node
-	 * as it propagates upwards, and also increments the number of visits for each node in this path.
+	 * Loops from the given node up to the main root node. Increases the value of
+	 * each node by the value of the terminal node as it propagates upwards, and
+	 * also increments the number of visits for each node in this path.
 	 * 
-	 * @param node The node that was chosen during the traversal process.
-	 *             The simulation process is branched off from this node.
-	 * @param simulation_result The result from the simulation process that
-	 * 		       branched off of the input node.
+	 * @param node              The node that was chosen during the traversal
+	 *                          process. The simulation process is branched off from
+	 *                          this node.
+	 * @param simulation_result The result from the simulation process that branched
+	 *                          off of the input node.
 	 * @return void
 	 */
 	private void backPropagate(GameState node, int simulation_result) {
-		//System.out.println("Back-propagating!");
+		// System.out.println("Back-propagating!");
 		GameState currentNode = node;
 		while (currentNode != null) {
 			currentNode.incrValue(simulation_result);
@@ -218,19 +228,16 @@ public class MonteCarloMoveGenerator {
 	 * @return a new random child node
 	 */
 	/*
-	private GameState rollout_policy(ArrayList<GameState> children) {
-		ArrayList<GameState> unvisited = new ArrayList<GameState>();
-		
-		// get all children which have not been searched yet
-		for (GameState a : children) {
-			unvisited.add(a);
-		}
+	 * private GameState rollout_policy(ArrayList<GameState> children) {
+	 * ArrayList<GameState> unvisited = new ArrayList<GameState>();
+	 * 
+	 * // get all children which have not been searched yet for (GameState a :
+	 * children) { unvisited.add(a); }
+	 * 
+	 * int child = (int) (unvisited.size() * Math.random()); return
+	 * unvisited.get(child); }
+	 */
 
-		int child = (int) (unvisited.size() * Math.random());
-		return unvisited.get(child);
-	}
-	*/
-	
 	/*
 	 * Pseudocode: # main function for the Monte Carlo Tree Search def
 	 * monte_carlo_tree_search(root):
