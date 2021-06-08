@@ -21,6 +21,7 @@ public class MonteCarloMoveGenerator {
 	private double startTime;
 	private int simulationsRan = 0;
 	private int maxDepthReached = 0;
+	private int numberOfTimesAllMovesGenerated = 0;
 
 	
 	/* Constructor */
@@ -43,8 +44,8 @@ public class MonteCarloMoveGenerator {
 		System.out.println("Starting Monte Carlo Tree Search...");
 		
 		// divide by 1000 to get from milliseconds to seconds
-		startTime = (double) (System.currentTimeMillis() / 1000.);																
-		double currentTime = (double) (System.currentTimeMillis() / 1000.);
+		startTime = (System.currentTimeMillis() / 1000.);																
+		double currentTime = (System.currentTimeMillis() / 1000.);
 
 		while ((currentTime - startTime) < timeAlotted) {
 			GameState leaf = traverse(root);
@@ -53,13 +54,15 @@ public class MonteCarloMoveGenerator {
 			int simulation_result = simulate(leaf);
 			backPropagate(leaf, simulation_result);
 
-			currentTime = (double) (System.currentTimeMillis() / 1000.);
+			currentTime = (System.currentTimeMillis() / 1000.);
 			
 			System.out.printf("Time elapsed: %2.3fs\tSimulation result: %d\n", currentTime - startTime, simulation_result);
 		}
 		System.out.println("Simulations ran: " + simulationsRan);
 		System.out.println("Maximum depth reached: " + maxDepthReached);
-		System.out.println("UCB of root's best child: " + bestChild(root).getUCB(C));
+		System.out.printf("UCB of root's best child: %.1f", bestChild(root).getUCB(C));
+		System.out.println("Number of times allMovesGenerated for sims: " + numberOfTimesAllMovesGenerated);
+		System.out.println("Average moves generated per sim: " + numberOfTimesAllMovesGenerated/(double)simulationsRan);
 		return bestChild(root).getAction();
 	}
 	
@@ -147,18 +150,18 @@ public class MonteCarloMoveGenerator {
 	 * Runs the simulation process of Monte-Carlo tree search. Takes the Board from the provided GameState and randomly makes moves on it
 	 * for alternating teams, starting with ourTeam if the provided GameState's depth is an even number, and otherwise the otherTeam.
 	 * 
-	 * @param root The node that will begin the simulation process
+	 * @param node The node that will begin the simulation process
 	 * @return 1 if the winning team is ours, else -1.
 	 */
-	private int simulate(GameState root) {
+	private int simulate(GameState node) {
 		simulationsRan++;
-		if (root.getDepth() > maxDepthReached)
-			maxDepthReached = root.getDepth();
-		Board boardToSimulate = Board.copyOf(root.getBoard());
+		if (node.getDepth() > maxDepthReached)
+			maxDepthReached = node.getDepth();
+		Board boardToSimulate = Board.copyOf(node.getBoard());
 		//System.out.println("Simulating!");
 		//System.out.println("Board being simulated:\n" + boardToSimulate.toString());
 		//Has imaginary enemy make the first move if the starting state was reached via a move by our team
-		if (root.getDepth() % 2 == 0)
+		if (node.getDepth() % 2 == 0)
 			return simulateHelper(boardToSimulate, ourTeam, otherTeam) == ourTeam ? 1 : -1; //Returns 1 if our team won
 		else
 			return simulateHelper(boardToSimulate, otherTeam, ourTeam) == ourTeam ? 1 : -1; //Returns 1 if our team won
@@ -173,6 +176,7 @@ public class MonteCarloMoveGenerator {
 	private int simulateHelper(Board simBoard, int currentTeam, int currentOtherTeam) {
 		//Generate possible moves
 		ArrayList<int[]> allPossibleMoves = simBoard.getAllPossibleMoves(currentTeam);
+		numberOfTimesAllMovesGenerated++;
 		
 		//If no possible moves, the game is lost for the current team, so returns the number of the other team.
 		if (allPossibleMoves.size() == 0) //(base case)

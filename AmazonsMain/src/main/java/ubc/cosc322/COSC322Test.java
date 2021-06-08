@@ -192,7 +192,7 @@ public class COSC322Test extends GamePlayer {
         board.movePiece(move);
         
         // Print out that we made a move, and which move we made
-        System.out.println("\n\nWe made a move:\n=====================");
+        System.out.println("\nWe made a move:\n=====================");
         System.out.println(board.toString());    
         System.out.println("Initial queen position: [y:" + (11 - move[1]) + ", x:" + move[0] + "]"); //These output the coordinates in the game's backward ass coordinate notation
         System.out.println("New queen position: [y:" + (11 - move[3]) + ", x:" + move[2] + "]");
