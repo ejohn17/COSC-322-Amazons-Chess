@@ -62,7 +62,7 @@ public class GameState {
 			return 0;	//The top of the tree has a UCB value of zero. It shouldn't matter what it is, really.
 		
 		if (this.getVisits() == 0)
-			ucb = Double.MAX_VALUE;
+			ucb = Integer.MAX_VALUE;
 		else
 			ucb = Math.abs(this.getValue())/(double)this.getVisits() + (C * Math.sqrt((Math.log(this.parent.getVisits())) / this.getVisits()));
 		

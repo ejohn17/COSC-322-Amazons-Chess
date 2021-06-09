@@ -14,8 +14,8 @@ import java.util.ArrayList;
 public class MonteCarloMoveGenerator {
 
 	// This is the constant value for UCB. It can be tweaked.
-	private double C = 2;
-	private long timeAlotted = 5;
+	private double C = 0.25; //So far I found 0.05 to be waaay better than 2.
+	private long timeAlotted = 29;
 	private int ourTeam;
 	private int otherTeam;
 	private double startTime;
@@ -65,6 +65,12 @@ public class MonteCarloMoveGenerator {
 		System.out.printf("UCB of root's best child:\t%.4f\n", bestChild(root).getUCB(C));
 		System.out.printf("n value of root's best child:\t%d\n", bestChild(root).getVisits());
 		System.out.printf("Win rate of root's best child:\t%.4f\n", bestChild(root).getValue()/(double)bestChild(root).getVisits());
+		/* The empirical mean, or win rate, seems to be flawed. It's the first half of the UCB formula, which is the number of won simulations
+		 * of a given node/branch, divided by the number of times this node/branch has been visited.
+		 * It seems that this value is always reported as being above 80-90%, unless the game is imminently about to be lost.
+		 * Perhaps it would be fixed if we reported a lost simulation as having a value of -1 rather than 0.
+		 * I ain't looked into it yet.
+		 */
 		System.out.printf("Avg moves generated per sim:\t%.1f", numberOfTimesAllMovesGenerated / (double) simulationsRan);
 		return bestChild(root).getAction();
 	}
@@ -99,7 +105,6 @@ public class MonteCarloMoveGenerator {
 			if (newChildren.size() > 0)
 				return newChildren.get(0);
 			else {
-				System.out.println("TERMINAL NODE FOUND AT DEPTH " + node.getDepth() + "!\t\tUCB value: " + node.getUCB(C));
 				return node; //This happens when the node is terminal (win or lose). Not sure what it should be.
 			}
 				

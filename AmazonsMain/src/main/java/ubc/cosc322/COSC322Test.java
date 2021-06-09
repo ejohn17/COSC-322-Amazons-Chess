@@ -65,15 +65,7 @@ public class COSC322Test extends GamePlayer {
     @Override
     public void onLogin() {
 		System.out.println("Connected to server\n=====================\n");
-
-		// List rooms
-//		System.out.println("\nRoom list:");
-//		for (Room r : gameClient.getRoomList())
-//			System.out.println(r.getName());
-		String roomName = gameClient.getRoomList().get(0).getName();
 		
-		// join the first room
-		gameClient.joinRoom(roomName);
 		board = new Board();
         userName = gameClient.getUserName();
         
