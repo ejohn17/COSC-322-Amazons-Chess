@@ -166,7 +166,7 @@ public class COSC322Test extends GamePlayer {
             gamegui.setGameState(gamestate);
             
             // Print out inital board
-            System.out.println("\nInital board:\n=====================");
+            System.out.println("\nInitial board:\n=====================");
             System.out.println(board.toString());
         }
         

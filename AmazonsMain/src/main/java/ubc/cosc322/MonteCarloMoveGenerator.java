@@ -23,6 +23,7 @@ public class MonteCarloMoveGenerator {
 	private int maxDepthReached = 0;
 	private int numberOfTimesAllMovesGenerated = 0;
 	private int maxBranchingFactor = 0;
+	private long totalSimTime = 0;
 
 	/* Constructor */
 	public MonteCarloMoveGenerator(int ourTeam) {
@@ -52,11 +53,7 @@ public class MonteCarloMoveGenerator {
 			GameState leaf = traverse(root);
 			int simulation_result = simulate(leaf);
 			backPropagate(leaf, simulation_result);
-			
 			currentTime = (System.currentTimeMillis() / 1000.);
-
-			//System.out.printf("Time elapsed: %2.3fs\tSimulation result: %d\n", currentTime - startTime,
-					//simulation_result);
 		}
 		
 		System.out.println("Simulations ran:\t\t" + simulationsRan);
@@ -71,7 +68,8 @@ public class MonteCarloMoveGenerator {
 		 * Perhaps it would be fixed if we reported a lost simulation as having a value of -1 rather than 0.
 		 * I ain't looked into it yet.
 		 */
-		System.out.printf("Avg moves generated per sim:\t%.1f", numberOfTimesAllMovesGenerated / (double) simulationsRan);
+		System.out.printf("Avg number of moves per sim:\t%.1f\n", numberOfTimesAllMovesGenerated / (double) simulationsRan);
+		System.out.printf("Avg time taken per sim:\t%f ms\n", (totalSimTime / (double) simulationsRan)/1_000_000);
 		return bestChild(root).getAction();
 	}
 
@@ -100,14 +98,12 @@ public class MonteCarloMoveGenerator {
 			// the first new child node to be simulated.
 			// This is the Expansion step of MCTS.
 			ArrayList<GameState> newChildren = node.getChildren(teamWhoseTurnIsNext);
-			if (newChildren.size() > maxBranchingFactor) //This is here for analysis. Remove later on to speed up the program.
+			if (newChildren.size() > maxBranchingFactor) //This is here for analysis purposes
 				maxBranchingFactor = newChildren.size();
 			if (newChildren.size() > 0)
 				return newChildren.get(0);
-			else {
+			else
 				return node; //This happens when the node is terminal (win or lose). Not sure what it should be.
-			}
-				
 		}
 
 	}
@@ -154,7 +150,7 @@ public class MonteCarloMoveGenerator {
 				if (child.getVisits() == 0) //This means it has the lowest possible UCB value, so let's just skip all the nonsense and return it.
 					return child;
 			}
-
+			
 			return bestChild;
 		}
 	}
@@ -169,19 +165,21 @@ public class MonteCarloMoveGenerator {
 	 * @return 1 if the winning team is ours, else -1.
 	 */
 	private int simulate(GameState node) {
+		int result;
 		simulationsRan++;
 		if (node.getDepth() > maxDepthReached)
 			maxDepthReached = node.getDepth();
 		Board boardToSimulate = Board.copyOf(node.getBoard());
-		// System.out.println("Simulating!");
-		// System.out.println("Board being simulated:\n" + boardToSimulate.toString());
-		// Has imaginary enemy make the first move if the starting state was reached via
-		// a move by our team
-
+		// Has the imaginary enemy make the first move if the starting state was reached via
+		// a move by our team, else vice versa.
+		long startTime = System.nanoTime();
 		if (node.getDepth() % 2 == 0)
-			return simulateHelper(boardToSimulate, ourTeam, otherTeam) == ourTeam ? 1 : 0; // Returns 1 if our team won
+			result = simulateHelper(boardToSimulate, ourTeam, otherTeam) == ourTeam ? 1 : 0; // Returns 1 if our team won
 		else
-			return simulateHelper(boardToSimulate, otherTeam, ourTeam) == ourTeam ? 1 : 0; // Returns 1 if our team won
+			result = simulateHelper(boardToSimulate, otherTeam, ourTeam) == ourTeam ? 1 : 0; // Returns 1 if our team won
+		
+		totalSimTime += (System.nanoTime() - startTime);
+		return result;
 	}
 
 	/**
@@ -191,16 +189,14 @@ public class MonteCarloMoveGenerator {
 	 * @return The number of the team that won.
 	 */
 	private int simulateHelper(Board simBoard, int currentTeam, int currentOtherTeam) {
-		numberOfTimesAllMovesGenerated++;
+		numberOfTimesAllMovesGenerated++;		
 		// Generate possible moves
 		ArrayList<int[]> allPossibleMoves = simBoard.getAllPossibleMoves(currentTeam);
 
 		// If no possible moves, the game is lost for the current team, so returns the
 		// number of the other team.
-		if (allPossibleMoves.size() == 0) {
-			// (base case)
-			return currentOtherTeam;
-		}
+		if (allPossibleMoves.size() == 0)
+			return currentOtherTeam;// (base case)
 
 		// If there are moves to be made, randomly chooses one.
 		int[] randomMove = allPossibleMoves.get((int) (Math.random() * allPossibleMoves.size()));
