@@ -100,18 +100,41 @@ public class COSC322Test extends GamePlayer {
             ArrayList<Integer> arrowPos = (ArrayList<Integer>) msgDetails.get(AmazonsGameMessage.ARROW_POS);
             
             // Their exact move: (Useful for debugging)
-            System.out.println("Enemy Queen inital position: [y:" + queenpos.get(0) + ", x:" + queenpos.get(1) + "]");
+            System.out.println("Enemy Queen initial position: [y:" + queenpos.get(0) + ", x:" + queenpos.get(1) + "]");
             System.out.println("Enemy Queen new position: [y:" + queenposNew.get(0) + ", x:" + queenposNew.get(1) + "]");
             System.out.println("Enemy Arrow position: [y:" + arrowPos.get(0) + ", x:" + arrowPos.get(1) + "]");
             
             //This is up here so that it can be detected before updating the Board (do not move this chunk to be after the board is updated or it'll probs break)
-            boolean illegalMoveMade = !board.checkIfMoveIsValid(queenpos.get(1), 11 - queenpos.get(0), queenposNew.get(1), 11 - queenposNew.get(0), arrowPos.get(1), 11 - arrowPos.get(0));
-            if (illegalMoveMade) {
+            boolean[][] arrayOfTruth = board.checkIfMoveIsValid(queenpos.get(1), 11 - queenpos.get(0), queenposNew.get(1), 11 - queenposNew.get(0), arrowPos.get(1), 11 - arrowPos.get(0));
+            if (!arrayOfTruth[0][0]) {
             	for (int i = 0; i < 10; i ++) {
                 	System.out.println("WEE WOO WEE WOO WEE WOO WEE WOO WEE WOO WEE WOO WEE WOO WEE WOO WEE WOO WEE WOO WEE WOO WEE WOO!!!!!!!!!!!!!!!!!!!!!");
                 	System.out.println("==============================I L L E G A L    M O V E   D E T E C T E D==============================");
             	}
-            	return false;
+            	System.out.println("\n============The move that was illegal was============");
+            	System.out.println("Enemy Queen inital position: [y:" + queenpos.get(0) + ", x:" + queenpos.get(1) + "]");
+                System.out.println("Enemy Queen new position: [y:" + queenposNew.get(0) + ", x:" + queenposNew.get(1) + "]");
+                System.out.println("Enemy Arrow position: [y:" + arrowPos.get(0) + ", x:" + arrowPos.get(1) + "]");
+                System.out.println("Whilst the board state, before their move, was:");
+                System.out.println(board.toString());
+                System.out.println("Reasons for invalidity are as follows:");
+                int numOfBrokenRules = 0;
+                if (arrayOfTruth[1][1])
+                	System.out.println(++numOfBrokenRules + ": Queen did not move.");
+                if (arrayOfTruth[1][2])
+                	System.out.println(++numOfBrokenRules + ": Queen's movement was not diagonal, horizontal, or vertical.");
+                if (arrayOfTruth[1][3])
+                	System.out.println(++numOfBrokenRules + ": Queen's path was obstructed.");
+                if (arrayOfTruth[1][4])
+                	System.out.println(++numOfBrokenRules + ": Queen's final or starting position is out of bounds.");
+                if (arrayOfTruth[2][1])
+                	System.out.println(++numOfBrokenRules + ": Arrow was thrown onto queen's new position.");
+                if (arrayOfTruth[2][2])
+                	System.out.println(++numOfBrokenRules + ": Arrow's trajectory was not diagonal, horizontal, or vertical.");
+                if (arrayOfTruth[2][3])
+                	System.out.println(++numOfBrokenRules + ": Arrow's path was obstructed.");
+                if (arrayOfTruth[2][4])
+                	System.out.println(++numOfBrokenRules + ": Arrow's final or starting position is out of bounds.");
             }
             
             // Update the board and GUI with the opposing player's move
@@ -119,6 +142,11 @@ public class COSC322Test extends GamePlayer {
             int[] fixedMoveInformation = new int[] { queenpos.get(1), 11 - queenpos.get(0), queenposNew.get(1), 11 - queenposNew.get(0), arrowPos.get(1), 11 - arrowPos.get(0)};
             board.movePiece(fixedMoveInformation);
             gamegui.updateGameState(queenpos, queenposNew, arrowPos);
+            
+            //Moved this down here so it still updates our GUI with their invalid move
+            if (arrayOfTruth[0][0] == false) {
+            	return false;
+            }
             
             // Print out their move
             System.out.println("\n\nOther player made a move:\n=====================");

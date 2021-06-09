@@ -235,18 +235,46 @@ public class Board {
      * @param qy2
      * @param ax
      * @param ay
-     * @return True if move is valid, else false.
+     * @return The array of truth, with elements as follows: {{isValid, null, null, null} {isQueenMoveLegit, didNotMove, notDiagonalHorizontalOrVertical, isObstructed, isOutOfBounds, queenDoesNotExist} {isArrowShotLegit, didNotMove, notDiagonalHorizontalOrVertical, isObstructed, isOutOfBounds}}
+     * 
      */
-    public boolean checkIfMoveIsValid(int qx1, int qy1, int qx2, int qy2, int ax, int ay) {
-    	boolean isQueenMoveLegit = checkIfMoveIsValidHelper(qx1, qy1, qx2, qy2); //Returns true if and no obstructions between queen's original tile and her new tile
-    	int temp = this.get(qx1, qy1); //Temporarily set qx1, qy1 blank
+    public boolean[][] checkIfMoveIsValid(int qx1, int qy1, int qx2, int qy2, int ax, int ay, int team) {
+    	int otherTeam = ()
+    	boolean[][] arrayOfTruth = new boolean[3][6];
+    	boolean[] arrayOfTruthForQueen = checkIfMoveIsValidHelper(qx1, qy1, qx2, qy2);
+    	int temp = this.get(qx1, qy1); //Temporarily save qx1, qy1 blank so that the arrow can consider it empty.
     	this.set(qx1, qy1, 0); //Clear the tile qx1, qy1
-    	boolean isArrowShotLegit = checkIfMoveIsValidHelper(qx2, qy2, ax, ay); //Returns true if no obstructions between queen's new tile and her arrow shot (excluding the tile whence she came)
+    	boolean[] arrayOfTruthForArrow = checkIfMoveIsValidHelper(qx2, qy2, ax, ay);
     	this.set(qx1, qy1, temp); //Reinstate qx1, qy1
-    	return isQueenMoveLegit && isArrowShotLegit;
+    	
+    	arrayOfTruth[0][0] = arrayOfTruthForQueen[0] && arrayOfTruthForArrow[0];	//isValid
+    	arrayOfTruth[1][0] = arrayOfTruthForQueen[0];	//isQueenMoveLegit
+    	arrayOfTruth[1][1] = arrayOfTruthForQueen[1];	//didNotMove
+    	arrayOfTruth[1][2] = arrayOfTruthForQueen[2];	//notDiagonalHorizontalOrVertical
+    	arrayOfTruth[1][3] = arrayOfTruthForQueen[3];	//isObstructed
+    	arrayOfTruth[1][4] = arrayOfTruthForQueen[4];	//isOutOfBounds
+    	arrayOfTruth[1][5] = (this.get(qx1, qy1)==0);	//queenDoesNotExist
+    	arrayOfTruth[1][5] = (this.get(qx1, qy1)==0);	//queenIsNotYours
+		arrayOfTruth[2][0] = arrayOfTruthForArrow[0];	//isArrowShotLegit
+    	arrayOfTruth[2][1] = arrayOfTruthForArrow[1];	//didNotMove
+    	arrayOfTruth[2][2] = arrayOfTruthForArrow[2];	//notDiagonalHorizontalOrVertical
+    	//The queen's move has to be legit in order for the arrow's path to be properly scanned for obstructions, so we avoid false positives here.
+    	//if (arrayOfTruth[1][0])
+        	arrayOfTruth[2][3] = arrayOfTruthForArrow[3];	//isObstructed
+    	arrayOfTruth[2][4] = arrayOfTruthForArrow[4];	//isOutOfBounds
+    	
+    	return arrayOfTruth;
     }
     
-    public boolean checkIfMoveIsValidHelper(int x1, int y1, int x2, int y2) {
+    /**
+     * @param x1
+     * @param y1
+     * @param x2
+     * @param y2
+     * @return The array of truth, with elements as follows: {{isValid, didNotMove, notDiagonalHorizontalOrVertical, isObstructed, isOutOfBounds}}
+     */
+    public boolean[] checkIfMoveIsValidHelper(int x1, int y1, int x2, int y2) {
+    	boolean[] arrayOfTruth = new boolean[5];
     	int deltaX = x2 - x1;
     	int deltaY = y2 - y1;
     	int deltaXAbs = Math.abs(deltaX);
@@ -255,18 +283,28 @@ public class Board {
     	if (	1 > x1 || x1 > 10 && 
     			1 > y1 || y1 > 10 &&
     			1 > x2 || x2 > 10 &&
-    			1 > y2 || y2 > 10)
-    		return false;
+    			1 > y2 || y2 > 10) {
+    		arrayOfTruth[0] = false; //sets isValid false
+    		arrayOfTruth[4] = true; //sets isOutOfBounds true
+    		return arrayOfTruth;
+    	}
 
     	//if deltaX = deltaY then the move must have been diagonal which is good.
     	//if only one of them equals 0 then it's a horizontal/vertical move which is good
     	//if BOTH of them equal zero then it's illegal (you're not allowed to move to the same place)
     	boolean didNotMove = (deltaXAbs == 0 && deltaYAbs == 0);
+    	if (didNotMove) {
+    		arrayOfTruth[0] = false;	//set isValid
+    		arrayOfTruth[1] = true;		//set didNotMove
+    		return arrayOfTruth;
+    	}
     	boolean isDiagonal = ((deltaXAbs == deltaYAbs) && !didNotMove);
     	boolean isHorizontalOrVertical = (deltaXAbs == 0 ^ deltaYAbs == 0);
-    	if (!isDiagonal && !isHorizontalOrVertical) //the didNotMove might not be neccessary here
-    		return false;
-    	
+    	if (!isDiagonal && !isHorizontalOrVertical) {
+    		arrayOfTruth[0] = false; //sets isValid false
+    		arrayOfTruth[2] = true; //sets notDiagonalHorizontalOrVertical true
+    		return arrayOfTruth;
+    	}
     	
     	int xStep, yStep;
     	//Now to check if the queen/arrow ran anything over
@@ -287,15 +325,31 @@ public class Board {
     	
     	if (Math.abs(xStep) > 1 || Math.abs(yStep) > 1) {
     		System.err.println("WARNING: Move-validity checker cannot work properly because xStep or yStep is not between -1 and 1. That's probably due to a programming error in the checkIfMoveIsValidHelper method.");
-    		return true; //it has to perhaps falsely return true (better than falsely reporting an invalid move) so that it doesn't get caught in an infinite loop. Throwing an exception seemed to be too complicated.
+    		arrayOfTruth[0] = true;		//set isValid
+    		arrayOfTruth[1] = false;	//set didNotMove
+        	arrayOfTruth[2] = false;	//set notDiagonalHorizontalOrVertical
+        	arrayOfTruth[3] = false;	//set isObstructed
+        	arrayOfTruth[4] = false;	//set isOutOfBounds
+    		return arrayOfTruth; //it has to perhaps falsely return true (better than falsely reporting an invalid move) so that it doesn't get caught in an infinite loop. Throwing an exception seemed to be too complicated.
     	}
     
     	int iteration = 0;
     	while (x1 + xStep*iteration != x2 || y1 + yStep*iteration != y2) {
     		iteration++;
-    		if (this.get(x1 + xStep*iteration, y1 + yStep*iteration) != 0)
-        		return false;
+    		if (this.get(x1 + xStep*iteration, y1 + yStep*iteration) != 0) {
+    			//This means there is an obstruction encountered between (x1, y1) and (x2,y2), not inclusive of (x1, y1), when the specified steps are followed
+    			arrayOfTruth[0] = false;
+    			arrayOfTruth[3] = true; //set isObstructed true
+        		return arrayOfTruth;
+    		}
     	}
-    	return true;
+    	
+    	//If it gets to this point, everything must be fine. Just making sure the array is consistent.
+    	arrayOfTruth[0] = true;		//set isValid
+    	arrayOfTruth[1] = false;	//set didNotMove
+    	arrayOfTruth[2] = false;	//set notDiagonalHorizontalOrVertical
+    	arrayOfTruth[3] = false;	//set isObstructed
+    	arrayOfTruth[4] = false;	//set isOutOfBounds
+    	return arrayOfTruth;
     }
 }
