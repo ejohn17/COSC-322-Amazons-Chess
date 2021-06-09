@@ -228,33 +228,45 @@ public class Board {
     }
     
 	/** An overly complicated method (but much more efficient than the original, simpler idea) to detect whether or not a move is legal
-     *  Make sure not to update the game board until after this check is done. TAKES CONVENTIONAL COORDINATE INPUT
+     *  Make sure not to update the game board until after this check is done. TAKES CONVENTIONAL COORDINATE INPUT.
      * @param qx1
      * @param qy1
      * @param qx2
      * @param qy2
      * @param ax
      * @param ay
-     * @return The array of truth, with elements as follows: {{isValid, null, null, null} {isQueenMoveLegit, didNotMove, notDiagonalHorizontalOrVertical, isObstructed, isOutOfBounds, queenDoesNotExist} {isArrowShotLegit, didNotMove, notDiagonalHorizontalOrVertical, isObstructed, isOutOfBounds}}
-     * 
+     * @return The array of truth, with elements as follows:
+     * {{isValid, null, null, null}
+     * {isQueenMoveLegit, didNotMove, notDiagonalHorizontalOrVertical, isObstructed, isOutOfBounds, queenDoesNotExist, queenIsAnArrow, queenIsNotYours}
+     * {isArrowShotLegit, didNotMove, notDiagonalHorizontalOrVertical, isObstructed, isOutOfBounds, null, null, null}}
      */
     public boolean[][] checkIfMoveIsValid(int qx1, int qy1, int qx2, int qy2, int ax, int ay, int team) {
-    	int otherTeam = ()
-    	boolean[][] arrayOfTruth = new boolean[3][6];
+    	int otherTeam = (team == 1 ? 2 : 1);
+    	boolean[][] arrayOfTruth = new boolean[3][8];
     	boolean[] arrayOfTruthForQueen = checkIfMoveIsValidHelper(qx1, qy1, qx2, qy2);
     	int temp = this.get(qx1, qy1); //Temporarily save qx1, qy1 blank so that the arrow can consider it empty.
     	this.set(qx1, qy1, 0); //Clear the tile qx1, qy1
     	boolean[] arrayOfTruthForArrow = checkIfMoveIsValidHelper(qx2, qy2, ax, ay);
     	this.set(qx1, qy1, temp); //Reinstate qx1, qy1
     	
+    	if (this.get(qx1, qy1) == 0) {
+    		arrayOfTruth[1][5] = true;					//queenDoesNotExist
+    		arrayOfTruthForQueen[0] = false;			//queen move not legit
+    	}
+    	if (this.get(qx1, qy1) == 3) {
+    		arrayOfTruth[1][6] = true;					//queenIsAnArrow
+    		arrayOfTruthForQueen[0] = false;			//queen move not legit
+    	}
+    	if (this.get(qx1, qy1) == otherTeam) {
+    		arrayOfTruth[1][7] = true;					//queenIsNotYours
+    		arrayOfTruthForQueen[0] = false;			//queen move not legit
+    	}
     	arrayOfTruth[0][0] = arrayOfTruthForQueen[0] && arrayOfTruthForArrow[0];	//isValid
     	arrayOfTruth[1][0] = arrayOfTruthForQueen[0];	//isQueenMoveLegit
     	arrayOfTruth[1][1] = arrayOfTruthForQueen[1];	//didNotMove
     	arrayOfTruth[1][2] = arrayOfTruthForQueen[2];	//notDiagonalHorizontalOrVertical
     	arrayOfTruth[1][3] = arrayOfTruthForQueen[3];	//isObstructed
     	arrayOfTruth[1][4] = arrayOfTruthForQueen[4];	//isOutOfBounds
-    	arrayOfTruth[1][5] = (this.get(qx1, qy1)==0);	//queenDoesNotExist
-    	arrayOfTruth[1][5] = (this.get(qx1, qy1)==0);	//queenIsNotYours
 		arrayOfTruth[2][0] = arrayOfTruthForArrow[0];	//isArrowShotLegit
     	arrayOfTruth[2][1] = arrayOfTruthForArrow[1];	//didNotMove
     	arrayOfTruth[2][2] = arrayOfTruthForArrow[2];	//notDiagonalHorizontalOrVertical

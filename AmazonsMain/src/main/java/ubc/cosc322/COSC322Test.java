@@ -22,6 +22,7 @@ public class COSC322Test extends GamePlayer {
     private Board board = null;
     
     private int ourTeam;  // white = 2, black = 1
+    private int otherTeam;
     
     private String userName = null;
     private String passwd = null;
@@ -105,14 +106,14 @@ public class COSC322Test extends GamePlayer {
             System.out.println("Enemy Arrow position: [y:" + arrowPos.get(0) + ", x:" + arrowPos.get(1) + "]");
             
             //This is up here so that it can be detected before updating the Board (do not move this chunk to be after the board is updated or it'll probs break)
-            boolean[][] arrayOfTruth = board.checkIfMoveIsValid(queenpos.get(1), 11 - queenpos.get(0), queenposNew.get(1), 11 - queenposNew.get(0), arrowPos.get(1), 11 - arrowPos.get(0));
+            boolean[][] arrayOfTruth = board.checkIfMoveIsValid(queenpos.get(1), 11 - queenpos.get(0), queenposNew.get(1), 11 - queenposNew.get(0), arrowPos.get(1), 11 - arrowPos.get(0), otherTeam);
             if (!arrayOfTruth[0][0]) {
             	for (int i = 0; i < 10; i ++) {
                 	System.out.println("WEE WOO WEE WOO WEE WOO WEE WOO WEE WOO WEE WOO WEE WOO WEE WOO WEE WOO WEE WOO WEE WOO WEE WOO!!!!!!!!!!!!!!!!!!!!!");
                 	System.out.println("==============================I L L E G A L    M O V E   D E T E C T E D==============================");
             	}
             	System.out.println("\n============The move that was illegal was============");
-            	System.out.println("Enemy Queen inital position: [y:" + queenpos.get(0) + ", x:" + queenpos.get(1) + "]");
+            	System.out.println("Enemy Queen initial position: [y:" + queenpos.get(0) + ", x:" + queenpos.get(1) + "]");
                 System.out.println("Enemy Queen new position: [y:" + queenposNew.get(0) + ", x:" + queenposNew.get(1) + "]");
                 System.out.println("Enemy Arrow position: [y:" + arrowPos.get(0) + ", x:" + arrowPos.get(1) + "]");
                 System.out.println("Whilst the board state, before their move, was:");
@@ -127,6 +128,12 @@ public class COSC322Test extends GamePlayer {
                 	System.out.println(++numOfBrokenRules + ": Queen's path was obstructed.");
                 if (arrayOfTruth[1][4])
                 	System.out.println(++numOfBrokenRules + ": Queen's final or starting position is out of bounds.");
+                if (arrayOfTruth[1][5])
+                	System.out.println(++numOfBrokenRules + ": The queen attempted to be moved does not exist.");
+                if (arrayOfTruth[1][6])
+                	System.out.println(++numOfBrokenRules + ": The queen attempted to be moved is an arrow.");
+                if (arrayOfTruth[1][7])
+                	System.out.println(++numOfBrokenRules + ": The queen attempted to be moved does not belong to the player attempting to move it.");
                 if (arrayOfTruth[2][1])
                 	System.out.println(++numOfBrokenRules + ": Arrow was thrown onto queen's new position.");
                 if (arrayOfTruth[2][2])
@@ -184,10 +191,14 @@ public class COSC322Test extends GamePlayer {
         	        	
         	
         	// Determine which team we are on
-        	if (blackUsername.equalsIgnoreCase(userName))
+        	if (blackUsername.equalsIgnoreCase(userName)) {
         		ourTeam = 1;
-        	else if (whiteUsername.equalsIgnoreCase(userName))
+        		otherTeam = 2;
+        	}
+        	else if (whiteUsername.equalsIgnoreCase(userName)) {
+        		otherTeam = 1;
         		ourTeam = 2;
+        	}
         	else {
         		System.err.println("Error. Our username did not match that of either the black or white player.");
         		return false;
