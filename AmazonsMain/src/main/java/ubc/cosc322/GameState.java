@@ -6,7 +6,7 @@ import java.util.Arrays;
 public class GameState {
 	private int[] action; //The action taken to get to this game state from its parent
 	private Board board = new Board();
-	private double value = 0;
+	private int value = 0;
 	private double ucb;
 	private int visits = 0;
 	private int depth = 0;
@@ -50,7 +50,7 @@ public class GameState {
 			return parent; }
 	
 	/** @return The value of the current GameState. */
-	public double getValue() { return Double.valueOf(value); }
+	public int getValue() { return Integer.valueOf(value); }
 	
     /** @return The number of times this GameState has been visited by its parent */
 	public int getVisits() { return Integer.valueOf(visits); }
@@ -58,11 +58,13 @@ public class GameState {
     /** Calculates and returns the UCB value of this node.
      * @return UCB value of this node. */
 	public double getUCB(double C) {
-		if (this.getVisits() == 0) {
+		if (this.parent == null)
+			return 0;	//The top of the tree has a UCB value of zero. It shouldn't matter what it is, really.
+		
+		if (this.getVisits() == 0)
 			ucb = Double.MAX_VALUE;
-		}
 		else
-			ucb = Math.abs(this.getValue()) + (C * Math.sqrt((Math.log(this.parent.getVisits())) / this.getVisits()));
+			ucb = Math.abs(this.getValue())/(double)this.getVisits() + (C * Math.sqrt((Math.log(this.parent.getVisits())) / this.getVisits()));
 		
 		if (this.getDepth() % 2 == 0) //If this gamestate is only reachable by an action taken by our enemy, flip its sign.
 			ucb = -ucb;
@@ -85,7 +87,7 @@ public class GameState {
 	
 	/** @param value The new value of the GameState
 	 *  @return void */
-	public void setValue(int value) { this.value = Double.valueOf(value); }
+	public void setValue(int value) { this.value = Integer.valueOf(value); }
 
     /** @param visits The number of visits this GameState has been visited by it's parent
      ** @return void*/

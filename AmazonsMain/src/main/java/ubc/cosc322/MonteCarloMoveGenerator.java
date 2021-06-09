@@ -15,17 +15,18 @@ public class MonteCarloMoveGenerator {
 
 	// This is the constant value for UCB. It can be tweaked.
 	private double C = 2;
-	private long timeAlotted = 29;
+	private long timeAlotted = 10;
 	private int ourTeam;
 	private int otherTeam;
 	private double startTime;
 	private int simulationsRan = 0;
 	private int maxDepthReached = 0;
 	private int numberOfTimesAllMovesGenerated = 0;
+	private int maxBranchingFactor = 0;
 
 	/* Constructor */
 	public MonteCarloMoveGenerator(int ourTeam) {
-		this.ourTeam = ourTeam;
+		this.ourTeam = Integer.valueOf(ourTeam);
 		if (this.ourTeam == 1)
 			otherTeam = 2;
 		else
@@ -39,6 +40,8 @@ public class MonteCarloMoveGenerator {
 	 * @return The potential action deemed best, given the provided GameState.
 	 */
 	public int[] monteCarloTreeSearch(GameState root) {
+		simulationsRan = 0;
+		maxDepthReached = 0;
 		System.out.println("Starting Monte Carlo Tree Search...");
 
 		// divide by 1000 to get from milliseconds to seconds
@@ -47,23 +50,22 @@ public class MonteCarloMoveGenerator {
 
 		while ((currentTime - startTime) < timeAlotted) {
 			GameState leaf = traverse(root);
-			if (leaf == null) // This will happen if the search tree is ever fully explored (which would
-								// happen at the end of a game, for sure)
-				break;
 			int simulation_result = simulate(leaf);
 			backPropagate(leaf, simulation_result);
-
+			
 			currentTime = (System.currentTimeMillis() / 1000.);
 
-			System.out.printf("Time elapsed: %2.3fs\tSimulation result: %d\n", currentTime - startTime,
-					simulation_result);
+			//System.out.printf("Time elapsed: %2.3fs\tSimulation result: %d\n", currentTime - startTime,
+					//simulation_result);
 		}
-		System.out.println("Simulations ran: " + simulationsRan);
-		System.out.println("Maximum depth reached: " + maxDepthReached);
-		System.out.printf("UCB of root's best child: %.1f", bestChild(root).getUCB(C));
-		System.out.println("Number of times allMovesGenerated for sims: " + numberOfTimesAllMovesGenerated);
-		System.out.println(
-				"Average moves generated per sim: " + numberOfTimesAllMovesGenerated / (double) simulationsRan);
+		
+		System.out.println("Simulations ran:\t\t" + simulationsRan);
+		System.out.println("Maximum branching factor:\t" + maxBranchingFactor);
+		System.out.println("Maximum depth reached:\t\t" + maxDepthReached);
+		System.out.printf("UCB of root's best child:\t%.4f\n", bestChild(root).getUCB(C));
+		System.out.printf("n value of root's best child:\t%d\n", bestChild(root).getVisits());
+		System.out.printf("Win rate of root's best child:\t%.4f\n", bestChild(root).getValue()/(double)bestChild(root).getVisits());
+		System.out.printf("Avg moves generated per sim:\t%.1f", numberOfTimesAllMovesGenerated / (double) simulationsRan);
 		return bestChild(root).getAction();
 	}
 
@@ -77,9 +79,6 @@ public class MonteCarloMoveGenerator {
 	 * @return The leaf to simulate
 	 */
 	private GameState traverse(GameState node) {
-		// System.out.println("Traversing!");
-		// System.out.println("Current board:\n" + node.getBoard().toString());
-
 		int teamWhoseTurnIsNext = node.getDepth() % 2 == 0 ? ourTeam : otherTeam;
 		// Is the current node a leaf node?
 		if (node.isExpanded() && node.getChildren(teamWhoseTurnIsNext).size() > 0) {
@@ -88,20 +87,22 @@ public class MonteCarloMoveGenerator {
 		}
 
 		// Is the n value for current node 0?
-		if (node.getVisits() == 0) {
-			// If yes, return this node to be simulated.
-			return node;
-		} else {
-			// If no, generate all its possible actions and add them to the tree, returning
+		if (node.getVisits() == 0)
+			return node;// If unvisited, return this node to be simulated.
+		else {
+			// If already visited, generate all its possible actions and add them to the tree, returning
 			// the first new child node to be simulated.
-			ArrayList<GameState> temp = node.getChildren(teamWhoseTurnIsNext);
-			if (temp.size() > 0) {
-				return temp.get(0);
-			} else {
-				// This happens when the node is terminal (win or lose)
-				return node;
+			// This is the Expansion step of MCTS.
+			ArrayList<GameState> newChildren = node.getChildren(teamWhoseTurnIsNext);
+			if (newChildren.size() > maxBranchingFactor) //This is here for analysis. Remove later on to speed up the program.
+				maxBranchingFactor = newChildren.size();
+			if (newChildren.size() > 0)
+				return newChildren.get(0);
+			else {
+				System.out.println("TERMINAL NODE FOUND AT DEPTH " + node.getDepth() + "!\t\tUCB value: " + node.getUCB(C));
+				return node; //This happens when the node is terminal (win or lose). Not sure what it should be.
 			}
-
+				
 		}
 
 	}
@@ -129,6 +130,8 @@ public class MonteCarloMoveGenerator {
 					highestValue = UCBvalue;
 					bestChild = child;
 				}
+				if (child.getVisits() == 0) //This means it has the highest possible UCB value, so let's just skip all the nonsense and return it.
+					return child;
 			}
 
 			return bestChild;
@@ -143,6 +146,8 @@ public class MonteCarloMoveGenerator {
 					lowestValue = UCBvalue;
 					bestChild = child;
 				}
+				if (child.getVisits() == 0) //This means it has the lowest possible UCB value, so let's just skip all the nonsense and return it.
+					return child;
 			}
 
 			return bestChild;
@@ -181,9 +186,9 @@ public class MonteCarloMoveGenerator {
 	 * @return The number of the team that won.
 	 */
 	private int simulateHelper(Board simBoard, int currentTeam, int currentOtherTeam) {
+		numberOfTimesAllMovesGenerated++;
 		// Generate possible moves
 		ArrayList<int[]> allPossibleMoves = simBoard.getAllPossibleMoves(currentTeam);
-		numberOfTimesAllMovesGenerated++;
 
 		// If no possible moves, the game is lost for the current team, so returns the
 		// number of the other team.
