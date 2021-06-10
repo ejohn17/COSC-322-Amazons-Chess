@@ -213,7 +213,8 @@ public class COSC322Test extends GamePlayer {
      * @param Array list of current gamestate
      * @return 
      */
-    public void makeMove() {        
+    public void makeMove() {
+    	
         // MonteCarloMoveGenerator AI
         MonteCarloMoveGenerator moveGen = new MonteCarloMoveGenerator(ourTeam);
         int[] move = moveGen.monteCarloTreeSearch(new GameState(board));
@@ -228,6 +229,8 @@ public class COSC322Test extends GamePlayer {
         System.out.println("Initial queen position: [y:" + (11 - move[1]) + ", x:" + move[0] + "]"); //These output the coordinates in the game's backward ass coordinate notation
         System.out.println("New queen position: [y:" + (11 - move[3]) + ", x:" + move[2] + "]");
         System.out.println("Arrow position: [y:" + (11 - move[5]) + ", x:" + move[4] + "]");
+        
+    	System.out.println("\nHeuristic2 for us: " + MiniMaxMoveGenerator.heuristic3(new GameState(board), ourTeam, otherTeam));
 
 	}
 

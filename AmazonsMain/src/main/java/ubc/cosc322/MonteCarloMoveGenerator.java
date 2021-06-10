@@ -15,7 +15,7 @@ public class MonteCarloMoveGenerator {
 
 	// This is the constant value for UCB. It can be tweaked.
 	private double C = 0.25; //So far I found 0.05 to be waaay better than 2.
-	private long timeAlotted = 29;
+	private long timeAlotted = 5;
 	private int ourTeam;
 	private int otherTeam;
 	private double startTime;

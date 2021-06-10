@@ -92,6 +92,35 @@ public class Board {
 			return -1;
 	}
 	
+	/** TAKES CONVENTIONAL ARRAY-COORDINATE INPUT.
+	 * @param coords Coordinates of tile whose value to be returned
+	 * @return The value of the game board at coords x, y. Returns -1 if out of bounds.
+	 */
+	public int get(int[] coords) {
+		return this.get(coords[0], coords[1]);
+	}
+	
+	/** TAKES CONVENTIONAL ARRAY-COORDINATE INPUT.
+	 * @param x int x coordinate
+	 * @param y int y coordinate
+	 * @return A list containing coords of all tiles directly proximate to supplies coords, empty or not, but not out of bounds.
+	 */
+	public ArrayList<int[]> getTilesAround(int x, int y) {
+		ArrayList<int[]> proximateTiles = new ArrayList<int[]>();
+		for (int yi = -1; yi <= 1; yi++)
+			for (int xi = -1; xi <= 1; xi++)
+				if (this.get(x + xi, y + yi) != -1 && !(xi == 0 && yi == 0)) //doesn't add OoB tiles to list
+					proximateTiles.add(new int[] { x + xi, y + yi});
+		return proximateTiles;
+	}
+	/** TAKES CONVENTIONAL ARRAY-COORDINATE INPUT.
+	 * @param coords Coordinates of the object of which you want to have returned the surrounding tiles
+	 * @return A list containing coords of all tiles directly proximate to supplies coords, empty or not, but not out of bounds.
+	 */
+	public ArrayList<int[]> getTilesAround(int[] coords) {
+		return getTilesAround(coords[0], coords[1]);
+	}
+	
 	/**
 	 * @param team Team number
 	 * @return An ArrayList of coordinates x, y (as ArrayLists of size 2) for each queen on the specified team
