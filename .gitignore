@@ -132,3 +132,4 @@ dmypy.json
 .pyre/
 *.class
 *.class
+AmazonsMain/target/classes/ubc/cosc322/COSC322Test.class

@@ -8,6 +8,8 @@ import java.util.*;
  */
 public class Board {
 	private int[][] board;
+	private boolean movesListIsUpToDate = false;
+	private ArrayList<int[]> movesList;
 	
 	/**
 	 * Default constructor. The class won't work properly if this constructor is used and the inner board field is never set,
@@ -28,7 +30,7 @@ public class Board {
 	 */
 	public Board(int[][] board) {
 		//this.board = board;
-		this.board = Arrays.copyOf(board, board.length);  //uncomment this and delete the other line once everything is working
+		this.board = Arrays.copyOf(board, board.length);
 	}
 	
 	/**
@@ -50,6 +52,7 @@ public class Board {
 	 */
 	public void setBoard(ArrayList<Integer> board) {
 		this.board = convertTo2DArray(board);
+		movesListIsUpToDate = false;
 	}
 	
 	/** Setter method for inner board variable
@@ -57,6 +60,7 @@ public class Board {
 	 */
 	public void setBoard(int[][] board) {
 		this.board = Arrays.copyOf(board, board.length);
+		movesListIsUpToDate = false;
 	}
 	
 	/** Getter method for inner board variable.
@@ -72,6 +76,7 @@ public class Board {
 	 * @return True if successful, else false.
 	 */
 	public boolean set(int x, int y, int val) {
+		movesListIsUpToDate = false;
 		if (x > 0 && y > 0 && x < 11 && y < 11) { //Checks if coords "out of bounds" (quotation marks, because 0th column and 0th row do exist but count as being out of bounds)
 			board[x][y] = Integer.valueOf(val);
 			return true;
@@ -164,6 +169,7 @@ public class Board {
 	 * @return True if move within range of board, false if move is not within range of the board
 	 */
 	public boolean movePiece(int[] move) {
+		movesListIsUpToDate = false;
 		move = Arrays.copyOf(move, move.length);
 		if (move[0] <= 10 && move[0] > 0 && move[1] <= 10 && move[1] > 0) {
 			int queen = board[move[0]][move[1]];		//save board value at queen's original place
@@ -177,6 +183,22 @@ public class Board {
 		
 //		System.err.println("From Board: Move not made.");
 		return false;
+	}
+	
+	/** Updates the board class with new moves, without checking for safety. TAKES CONVENTIONAL ARRAY-COORDINATE INPUT.
+	 * @param qx1 Original queen x position
+	 * @param qy1 Original queen y position
+	 * @param qx2 New queen x position
+	 * @param qy2 New queen y position
+	 * @param ax Arrow position
+	 * @param ax Arrow position
+	 */
+	public void movePieceFast(int[] action) {
+		movesListIsUpToDate = false;
+		int queen = board[action[0]][action[1]];					//save board value at queen's original place
+		board[action[0]][action[1]] = 0;							//delete queen from original place
+		board[action[2]][action[3]] = queen;							//recreate queen at new place
+		board[action[4]][action[5]] = 3;							//put arrow at arrow coords
 	}
 	
 	/** 
@@ -199,7 +221,10 @@ public class Board {
      * @return a big list of int arrays of length 6, in the format { qx1, qy1, qx2, qy2, ax, ay } IN THE CONVENTIONAL COORDINATE FORMAT (y=1 is at the top of the board)
      */
     public ArrayList<int[]> getAllPossibleMoves(int team){
-    	ArrayList<int[]> movesList = new ArrayList<>();
+    	if (movesListIsUpToDate) { //Saves time by not needlessly recalculating all moves if the board hasn't changed
+    		return movesList;
+    	}
+    	movesList = new ArrayList<>();
     	ArrayList<int[]> allQueenPositions = this.getQueenCoords(team);
     	for (int[] curQueenPosition : allQueenPositions) {
     		ArrayList<int[]> allMovesForCurrentQueen = getAllPossibleMovesHelper(curQueenPosition[0], curQueenPosition[1]);
