@@ -64,29 +64,31 @@ public class MiniMaxMoveGenerator {
 	}
 	
 	private static int heuristic3Helper(Board board, int ourTeam) {
-		ArrayList<int[]> queenCoords = board.getQueenCoords(ourTeam);
+		ArrayList<int[]> allQueenCoords = board.getQueenCoords(ourTeam);
 		ArrayList<int[]> queensToSkip = new ArrayList<>(); //Queens will be added to list if they are to be prevented from having BFS performed on them.
 		int spaceAvailableToQueens = 0;
 		
-		for (int[] queen : queenCoords) {
-			if (queensToSkip.contains(queen))
+		for (int[] queenCoords : allQueenCoords) {
+			if (queensToSkip.contains(queenCoords))
 				continue;
 			
-			LinkedList<int[]> queue = new LinkedList<>();
+			LinkedList<int[]> tileQueue = new LinkedList<>();
 			HashSet<int[]> tilesVisited = new HashSet<>();
-			queue.add(queen);
+			tileQueue.add(queenCoords);
 			
-			while (!queue.isEmpty()) {
+			//Breadth-first search
+			while (!tileQueue.isEmpty()) {
 				ArrayList<int[]> tilesToAdd = new ArrayList<>();
-				tilesToAdd.addAll(board.getTilesAround(queue.poll())); //Dequeue current tile, add its children to shortlist of tiles to expand upon
-				for (int[] tile : tilesToAdd)
-					if (!tilesVisited.contains(tile)) {			//for each shortlisted tile, (temp is the same as tile, except in ArrayList format because for some retarded reason Java can't properly run .equals on primitive arrays)
-						queue.add(tile);						//add tile to queue if it has not already been visited
-						tilesVisited.add(tile);				//add tile to list of visited tiles
-						if (board.get(tile) == 0)				//Now, if the current tile is empty, add it to list of available free tiles.
-							spaceAvailableToQueens++;
-						else if (queenCoords.contains(tile)) //If the current tile is the location of one of the current team's queens, ensure that that encountered queen does not have BFS performed on her by removing her from the list.
-							queensToSkip.add(tile);
+				tilesToAdd.addAll(board.getTilesAround(tileQueue.poll()));			//Dequeue current tile, add its children to shortlist of tiles to expand upon
+				for (int[] tile : tilesToAdd)									//for each shortlisted tile,
+					if (!tilesVisited.contains(tile) && board.get(tile) == 0) {	//if it is empty and has not been visited,
+						tileQueue.add(tile);										//add tile to queue
+						tilesVisited.add(tile);									//mark tile as visited
+						spaceAvailableToQueens++;								//Now, if the current tile is empty, add it to list of available free tiles.	
+					}
+					else if (board.get(tile) == ourTeam) { //If the current tile is the location of one of the current team's queens,
+						queensToSkip.add(tile); 		//ensure that that encountered queen does not have BFS performed on her by removing her from the list.
+						tilesVisited.add(tile);			//also mark tile as visited
 					}
 			}
 		}
