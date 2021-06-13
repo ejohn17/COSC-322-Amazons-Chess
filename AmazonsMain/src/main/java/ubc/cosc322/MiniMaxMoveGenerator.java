@@ -8,28 +8,37 @@ public class MiniMaxMoveGenerator {
 	private final static int END_REWARD = Integer.MAX_VALUE;
 	private static int leafsReached = 0;
 	private static int totalNodesVisited = 0;
-	private static int timeAllotted = 25;
+	private static int timeAllotted = 10;
 	private static long startingTime;
 	private static int depthReached = 0;
 	
 	/** Returns the best action to be made
 	 * @param root
 	 */
-	public static int[] getMove(GameState gameState, int ourTeam) {
+	protected static int[] getMove(GameState gameState, int ourTeam) {
+		System.out.println("Starting MINI MAX...");
 		startingTime = System.currentTimeMillis();
 		Board board = gameState.getBoard();
 		ArrayList<int[]> allOurMoves = board.getAllPossibleMoves(ourTeam);
 		int otherTeam = (ourTeam == 1 ? 2 : 1);
 		GameState bestNode = new GameState(allOurMoves.get(0), gameState);
-		for (int[] move : allOurMoves) {
-			GameState node = new GameState(move, gameState);
-			node.setMiniMaxValue(minValue(0, 0, node.getBoard(), ourTeam, otherTeam, Integer.MIN_VALUE, Integer.MAX_VALUE));
-			if (node.getMiniMaxValue() > bestNode.getMiniMaxValue())
-				bestNode = node;
-		}
+		
+		int depthLimit = 2;
+		//The while-loop is so that the DFS can be iteratively deepened until time runs out, starting at 1.
+		//Have not fully thought out the implications of doing it this way.
+		//while (System.currentTimeMillis()/1000. - startingTime/1000. < timeAllotted) {
+			for (int[] move : allOurMoves) {
+				GameState node = new GameState(move, gameState);
+				node.setMiniMaxValue(maxValue(0, depthLimit, node.getBoard(), ourTeam, otherTeam, Integer.MIN_VALUE, Integer.MAX_VALUE));
+				if (node.getMiniMaxValue() > bestNode.getMiniMaxValue())
+					bestNode = node;
+			}
+		//	depthLimit++;
+		//}
+		
 		System.out.println("Number of terminal nodes reached: " + leafsReached);
 		System.out.println("Number of nodes visited: " + totalNodesVisited);
-		System.out.println("Utility of best action: " + bestNode.getMiniMaxValue());
+		System.out.println("Best action utility difference: " + (bestNode.getMiniMaxValue() - getUtility(gameState.getBoard(), ourTeam, otherTeam)));
 		System.out.println("Time taken: " + (System.currentTimeMillis()/1000. - startingTime/1000.));
 		System.out.println("Depth reached: " + depthReached);
 		return bestNode.getAction();
@@ -37,27 +46,26 @@ public class MiniMaxMoveGenerator {
 	
 	private static int maxValue(int depth, int depthLimit, Board board, int ourTeam, int otherTeam, int a, int b) {
 		totalNodesVisited++;
-		if (depth < depthReached)
+		if (++depth > depthReached)
 			depthReached = depth;
 		
 		ArrayList<int[]> allOurMoves = board.getAllPossibleMoves(ourTeam);
-		depth++;
 		
-		if (depth == 2 || stateIsTerminal(board)) { 	//If state is terminal
+		if (depth == 3 || stateIsTerminal(board)) { 	//If state is terminal
 			leafsReached++;
 			return getUtility(board, ourTeam, otherTeam);	//Run heuristic function
 		}
 		
 		int v = Integer.MIN_VALUE;
 		for (int[] move : allOurMoves) {
+			if (System.currentTimeMillis()/1000. - startingTime/1000. > timeAllotted)
+				break;
 			Board tempBoard = Board.copyOf(board);
 			tempBoard.movePieceFast(move);
 			v = Math.max(v, minValue(Integer.valueOf(depth), depthLimit, tempBoard, ourTeam, otherTeam, a , b));
 			if (v >= b)
 				return v;
 			a = Math.max(a, v);
-			if (System.currentTimeMillis()/1000. - startingTime/1000. > timeAllotted)
-				break;
 		}
 		return v;
 	}
@@ -98,16 +106,16 @@ public class MiniMaxMoveGenerator {
 	}
 	
 	private static int getUtility(Board board, int ourTeam, int otherTeam) {
-		int c1 = 1;
-		int c2 = 0;
-		int c3 = 0;
+		double c1 = 0;
+		double c2 = 0;
+		double c3 = 1;
 		if (board.getAllPossibleMoves(ourTeam).size() == 0)
 			return -END_REWARD;
 		if (board.getAllPossibleMoves(otherTeam).size() == 0)
 			return END_REWARD;
-		return c1*heuristic1(board, ourTeam, otherTeam)		// Difference of sums of obstacles directly adjacent to each team's queens
-				+ c2*heuristic3(board, ourTeam, otherTeam)	// Difference of number of moves available to each team
-				+ c3*heuristic3(board, ourTeam, otherTeam);	// Difference of amount of space accessible to each team's queens
+		return (int)(c1*heuristic1(board, ourTeam, otherTeam)	// Difference of sums of obstacles directly adjacent to each team's queens
+				+ c2*heuristic2(board, ourTeam, otherTeam)		// Difference of number of moves available to each team
+				+ c3*heuristic3(board, ourTeam, otherTeam));	// Difference of amount of space accessible to each team's queens
 	}
 	
 	/**
@@ -116,7 +124,7 @@ public class MiniMaxMoveGenerator {
 	 * @param otherTeam
 	 * @return The sum of obstacles within 1 tile of each queen for enemy team, minus that of queens for our team.
 	 */
-	public static int heuristic1(Board board, int ourTeam, int otherTeam) {
+	private static int heuristic1(Board board, int ourTeam, int otherTeam) {
 		int sumOfObstaclesNearEachEnemyQueen = 0;
 		int sumOfObstaclesNearEachOfOurQueens = 0; //overly descriptive identifiers
 		
@@ -144,7 +152,7 @@ public class MiniMaxMoveGenerator {
 	 * @param ourTeam
 	 * @return The number of moves our team can make, minus that of the enemy.
 	 */
-	public static int heuristic2(Board board, int ourTeam, int otherTeam) {
+	private static int heuristic2(Board board, int ourTeam, int otherTeam) {
 		return board.getAllPossibleMoves(ourTeam).size() - board.getAllPossibleMoves(otherTeam).size();
 	}
 	
@@ -154,7 +162,7 @@ public class MiniMaxMoveGenerator {
 	 * @param otherTeam
 	 * @return The sum of the number of tiles that each of our queens can potentially reach, minus that of the enemy's queens. Only counts a space shared by multiple queens once.
 	 */
-	public static int heuristic3(Board board, int ourTeam, int otherTeam) {
+	private static int heuristic3(Board board, int ourTeam, int otherTeam) {
 		return heuristic3Helper(board, ourTeam) - heuristic3Helper(board, otherTeam	);
 	}
 	

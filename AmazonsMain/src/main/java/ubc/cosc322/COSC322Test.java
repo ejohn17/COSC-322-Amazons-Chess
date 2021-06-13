@@ -23,6 +23,7 @@ public class COSC322Test extends GamePlayer {
     
     private int ourTeam;  // white = 2, black = 1
     private int otherTeam;
+    private final int MINIMAX_THRESHOLD= 60;
     
     private String userName = null;
     private String passwd = null;
@@ -214,11 +215,15 @@ public class COSC322Test extends GamePlayer {
      * @return 
      */
     public void makeMove() {
-    	
-        // MonteCarloMoveGenerator AI
-        //MonteCarloMoveGenerator moveGen = new MonteCarloMoveGenerator(ourTeam);
-        //int[] move = moveGen.monteCarloTreeSearch(new GameState(board));
-    	int[] move = MiniMaxMoveGenerator.getMove(new GameState(board), ourTeam);
+        int[] move;
+        MonteCarloMoveGenerator moveGen = new MonteCarloMoveGenerator(ourTeam);
+        
+        double movesLeft = moveGen.estimateMovesLeft(new GameState(board), 10);
+        System.out.println("Estimated moves left: " + movesLeft);
+        if (movesLeft < MINIMAX_THRESHOLD)
+        	move = moveGen.monteCarloTreeSearch(new GameState(board));
+        else
+        	move = MiniMaxMoveGenerator.getMove(new GameState(board), ourTeam);
         
         // Send that play to the server, and then update our board with that move.
         sendPlay(move);

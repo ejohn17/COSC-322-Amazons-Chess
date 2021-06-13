@@ -15,18 +15,19 @@ public class MonteCarloMoveGenerator {
 
 	// This is the constant value for UCB. It can be tweaked.
 	private double C = 0.25; //So far I found 0.05 to be waaay better than 2.
-	private long timeAlotted = 5;
+	private long timeAlotted = 10;
 	private int ourTeam;
 	private int otherTeam;
 	private double startTime;
 	private int simulationsRan = 0;
 	private int maxDepthReached = 0;
 	private int numberOfTimesAllMovesGenerated = 0;
+	private int estimatedNumberOfMovesLeft = 0;
 	private int maxBranchingFactor = 0;
 	private long totalSimTime = 0;
 
 	/* Constructor */
-	public MonteCarloMoveGenerator(int ourTeam) {
+	protected MonteCarloMoveGenerator(int ourTeam) {
 		this.ourTeam = Integer.valueOf(ourTeam);
 		if (this.ourTeam == 1)
 			otherTeam = 2;
@@ -40,10 +41,10 @@ public class MonteCarloMoveGenerator {
 	 * @param root
 	 * @return The potential action deemed best, given the provided GameState.
 	 */
-	public int[] monteCarloTreeSearch(GameState root) {
+	protected int[] monteCarloTreeSearch(GameState root) {
 		simulationsRan = 0;
 		maxDepthReached = 0;
-		System.out.println("Starting Monte Carlo Tree Search...");
+		System.out.println("Starting MONTE CARLO TREE SEARCH...");
 
 		// divide by 1000 to get from milliseconds to seconds
 		startTime = (System.currentTimeMillis() / 1000.);
@@ -164,7 +165,7 @@ public class MonteCarloMoveGenerator {
 	 * @param node The node that will begin the simulation process
 	 * @return 1 if the winning team is ours, else -1.
 	 */
-	private int simulate(GameState node) {
+	protected int simulate(GameState node) {
 		int result;
 		simulationsRan++;
 		if (node.getDepth() > maxDepthReached)
@@ -228,48 +229,40 @@ public class MonteCarloMoveGenerator {
 		}
 	}
 
+	/** Basically the same code as simulate() except it returns an estimate of the number of moves left in une game
+	 * @param node
+	 * @return
+	 */
+	protected double estimateMovesLeft(GameState node, int sampleSize) {
+		estimatedNumberOfMovesLeft = 0;
+		Board boardToSimulate = Board.copyOf(node.getBoard());
+		double movesLeft = 0;
+		for (int i = 0; i < sampleSize; i++)
+			movesLeft += estimateMovesLeftHelper(boardToSimulate, ourTeam, otherTeam);
+		return movesLeft/sampleSize;
+	}
+	
 	/**
-	 * 
-	 * @param children the children of the Parent node we are rolling out
-	 * @return a new random child node
+	 * @param simBoard         Starting board to simulate
+	 * @param currentTeam      The first team to make a move
+	 * @param currentOtherTeam The other team
+	 * @return The number of the team that won.
 	 */
-	/*
-	 * private GameState rollout_policy(ArrayList<GameState> children) {
-	 * ArrayList<GameState> unvisited = new ArrayList<GameState>();
-	 * 
-	 * // get all children which have not been searched yet for (GameState a :
-	 * children) { unvisited.add(a); }
-	 * 
-	 * int child = (int) (unvisited.size() * Math.random()); return
-	 * unvisited.get(child); }
-	 */
+	private int estimateMovesLeftHelper(Board simBoard, int currentTeam, int currentOtherTeam) {
+		// Generate possible moves
+		ArrayList<int[]> allPossibleMoves = simBoard.getAllPossibleMoves(currentTeam);
 
-	/*
-	 * Pseudocode: # main function for the Monte Carlo Tree Search def
-	 * monte_carlo_tree_search(root):
-	 * 
-	 * while resources_left(time, computational power): leaf = traverse(root)
-	 * simulation_result = rollout(leaf) backpropagate(leaf, simulation_result)
-	 * 
-	 * return best_child(root)
-	 * 
-	 * # function for node traversal def traverse(node): while fully_expanded(node):
-	 * node = best_uct(node)
-	 * 
-	 * # in case no children are present / node is terminal return
-	 * pick_univisted(node.children) or node
-	 * 
-	 * # function for the result of the simulation def rollout(node): while
-	 * non_terminal(node): node = rollout_policy(node) return result(node)
-	 * 
-	 * # function for randomly selecting a child node def rollout_policy(node):
-	 * return pick_random(node.children)
-	 * 
-	 * # function for backpropagation def backpropagate(node, result): if
-	 * is_root(node) return node.stats = update_stats(node, result)
-	 * backpropagate(node.parent)
-	 * 
-	 * # function for selecting the best child # node with highest number of visits
-	 * def best_child(node): pick child with highest number of visits
-	 */
+		// If no possible moves, the game is lost for the current team, so returns the
+		// number of the other team.
+		if (allPossibleMoves.size() == 0)
+			return estimatedNumberOfMovesLeft;// (base case)
+
+		// If there are moves to be made, randomly chooses one.
+		int[] randomMove = allPossibleMoves.get((int) (Math.random() * allPossibleMoves.size()));
+		simBoard.movePiece(randomMove);
+
+		estimatedNumberOfMovesLeft++;
+		allPossibleMoves = null; // Unreferencing to save memory
+		return estimateMovesLeftHelper(simBoard, currentOtherTeam, currentTeam);
+	}
 }
