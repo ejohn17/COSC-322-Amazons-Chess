@@ -22,6 +22,7 @@ public class MonteCarloMoveGenerator {
 	private int simulationsRan = 0;
 	private int maxDepthReached = 0;
 	private int numberOfTimesAllMovesGenerated = 0;
+	private int estimatedNumberOfMovesLeft = 0;
 	private int maxBranchingFactor = 0;
 	private long totalSimTime = 0;
 
@@ -226,6 +227,43 @@ public class MonteCarloMoveGenerator {
 			currentNode.incrVisits(1);
 			currentNode = currentNode.getParent();
 		}
+	}
+	
+	/** Basically the same code as simulate() except it returns an estimate of the number of moves left in une game
+	 * @param node
+	 * @return
+	 */
+	protected double estimateMovesLeft(GameState node, int sampleSize) {
+		estimatedNumberOfMovesLeft = 0;
+		Board boardToSimulate = Board.copyOf(node.getBoard());
+		double movesLeft = 0;
+		for (int i = 0; i < sampleSize; i++)
+			movesLeft += estimateMovesLeftHelper(boardToSimulate, ourTeam, otherTeam);
+		return movesLeft/sampleSize;
+	}
+	
+	/**
+	 * @param simBoard         Starting board to simulate
+	 * @param currentTeam      The first team to make a move
+	 * @param currentOtherTeam The other team
+	 * @return The number of the team that won.
+	 */
+	private int estimateMovesLeftHelper(Board simBoard, int currentTeam, int currentOtherTeam) {
+		// Generate possible moves
+		ArrayList<int[]> allPossibleMoves = simBoard.getAllPossibleMoves(currentTeam);
+
+		// If no possible moves, the game is lost for the current team, so returns the
+		// number of the other team.
+		if (allPossibleMoves.size() == 0)
+			return estimatedNumberOfMovesLeft;// (base case)
+
+		// If there are moves to be made, randomly chooses one.
+		int[] randomMove = allPossibleMoves.get((int) (Math.random() * allPossibleMoves.size()));
+		simBoard.movePiece(randomMove);
+
+		estimatedNumberOfMovesLeft++;
+		allPossibleMoves = null; // Unreferencing to save memory
+		return estimateMovesLeftHelper(simBoard, currentOtherTeam, currentTeam);
 	}
 
 	/**

@@ -7,6 +7,7 @@ public class GameState {
 	private int[] action; //The action taken to get to this game state from its parent
 	private Board board = new Board();
 	private int value = 0;
+	private int miniMaxValue = 0;
 	private double ucb;
 	private int visits = 0;
 	private int depth = 0;
@@ -19,6 +20,13 @@ public class GameState {
 	public GameState(int[] action, GameState parent, int depth) {
 		this.action = Arrays.copyOf(action, action.length);
 		this.depth = Integer.valueOf(depth);
+		this.parent = parent;
+		this.board = Board.copyOf(parent.getBoard());
+		this.board.movePiece(action);
+	}
+	
+	public GameState(int[] action, GameState parent) {
+		this.action = Arrays.copyOf(action, action.length);
 		this.parent = parent;
 		this.board = Board.copyOf(parent.getBoard());
 		this.board.movePiece(action);
@@ -51,6 +59,9 @@ public class GameState {
 	
 	/** @return The value of the current GameState. */
 	public int getValue() { return Integer.valueOf(value); }
+	
+	/** @return The value of the current GameState. */
+	public int getMiniMaxValue() { return miniMaxValue; }
 	
     /** @return The number of times this GameState has been visited by its parent */
 	public int getVisits() { return Integer.valueOf(visits); }
@@ -88,6 +99,10 @@ public class GameState {
 	/** @param value The new value of the GameState
 	 *  @return void */
 	public void setValue(int value) { this.value = Integer.valueOf(value); }
+	
+	/** @param value The new value of the GameState, for MiniMax
+	 *  @return void */
+	public void setMiniMaxValue(int val) { this.miniMaxValue = Integer.valueOf(val); }
 
     /** @param visits The number of visits this GameState has been visited by it's parent
      ** @return void*/
