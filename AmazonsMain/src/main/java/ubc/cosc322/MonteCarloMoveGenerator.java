@@ -15,7 +15,7 @@ public class MonteCarloMoveGenerator {
 
 	// This is the constant value for UCB. It can be tweaked.
 	private double C = 0.25; //So far I found 0.05 to be waaay better than 2.
-	private long timeAlotted = 29;
+	private long timeAlotted = 15;
 	private int ourTeam;
 	private int otherTeam;
 	private double startTime;
@@ -54,6 +54,11 @@ public class MonteCarloMoveGenerator {
 			int simulation_result = simulate(leaf);
 			backPropagate(leaf, simulation_result);
 			currentTime = (System.currentTimeMillis() / 1000.);
+			
+			if(breakEarly(root)) {
+				System.out.println("====BROKE EARLY====");
+				break;
+			}
 		}
 		
 		System.out.println("Simulations ran:\t\t" + simulationsRan);
@@ -70,6 +75,12 @@ public class MonteCarloMoveGenerator {
 		 */
 		System.out.printf("Avg number of moves per sim:\t%.1f\n", numberOfTimesAllMovesGenerated / (double) simulationsRan);
 		System.out.printf("Avg time taken per sim:\t%f ms\n", (totalSimTime / (double) simulationsRan)/1_000_000);
+		
+		
+		System.out.printf("\nRoot's visits:\t%d\n", root.getVisits());
+		System.out.printf("Root's thresh:\t%.4f\n", root.getValue() * 0.80);
+		System.out.printf("Best value:\t%d\n", bestChild(root).getValue());
+		
 		return bestChild(root).getAction();
 	}
 
@@ -226,6 +237,29 @@ public class MonteCarloMoveGenerator {
 			currentNode.incrVisits(1);
 			currentNode = currentNode.getParent();
 		}
+	}
+	
+	
+	private boolean breakEarly(GameState root) {
+		if(root.getVisits() < 200) 
+			return false;
+		else if(bestChild(root).getValue() > (root.getValue() * 0.80))
+			return true;
+		else if(root.getChildren(ourTeam).size() < 300 & withinAverage(root))
+			return true;
+		else
+			return false;
+	}
+	
+	private boolean withinAverage(GameState root) {
+		double average = root.getValue() / root.getChildren(ourTeam).size();
+		
+		for (GameState child : root.getChildren(ourTeam)) {
+			if(child.getValue() > average + 10 || child.getValue() < average - 10)
+				return false;
+		}
+		
+		return true;
 	}
 
 	/**
