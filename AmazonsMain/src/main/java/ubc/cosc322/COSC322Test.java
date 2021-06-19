@@ -25,6 +25,7 @@ public class COSC322Test extends GamePlayer {
     private int ourTeam;  // white = 2, black = 1
     private int otherTeam;
     private final int MINIMAX_THRESHOLD = 60;
+    private final boolean MONTE_CARLO_ONLY_MODE = false; //Set this to true if you want to run the AI in the original Monte-Carlo only mode.
     
     private String userName = null;
     private String passwd = null;
@@ -212,7 +213,6 @@ public class COSC322Test extends GamePlayer {
     /**Calls on either the MiniMax algorithm or Monte Carlo to choose a move which is then sent to the server.
      * 
      * @param Array list of current gamestate
-     * @return 
      */
     public void makeMove() {        
         // MonteCarloMoveGenerator AI
@@ -227,7 +227,7 @@ public class COSC322Test extends GamePlayer {
         
         //THIS IS THE PART THAT DECIDES WHETHER WE DO MINIMAX OR MONTE CARLO
         //Starts off with MiniMax, then switches to Monte Carlo when there are estimated to be less than MINIMAX_THRESHOLD moves remaining
-        if (movesLeft > MINIMAX_THRESHOLD)
+        if (movesLeft > MINIMAX_THRESHOLD && !MONTE_CARLO_ONLY_MODE)
         	move = MiniMaxMoveGenerator.getMove(new GameState(board), ourTeam);
         else
         	move = moveGen.monteCarloTreeSearch(new GameState(board));
@@ -243,7 +243,6 @@ public class COSC322Test extends GamePlayer {
         System.out.println("Initial queen position: [y:" + (11 - move[1]) + ", x:" + move[0] + "]"); //These output the coordinates in the game's backward ass coordinate notation
         System.out.println("New queen position: [y:" + (11 - move[3]) + ", x:" + move[2] + "]");
         System.out.println("Arrow position: [y:" + (11 - move[5]) + ", x:" + move[4] + "]");
-
 	}
 
     /** Sends the argued move to the server. This method takes input in our coordinate format, and sends it to the server in Gao's format.
@@ -266,28 +265,14 @@ public class COSC322Test extends GamePlayer {
     	this.gamegui.updateGameState(queenStart, queenEnd, arrow);
     }
     
-    public int getTeam() {
-    	return ourTeam;
-    }
-    
+    public int getTeam() { return ourTeam; }
     @Override
-    public String userName() {
-        return userName;
-    }
-
+    public String userName() { return userName; }
     @Override
-    public GameClient getGameClient() {
-        return this.gameClient;
-    }
-
+    public GameClient getGameClient() { return this.gameClient; }
     @Override
-    public BaseGameGUI getGameGUI() {
-        return gamegui;
-    }
-
+    public BaseGameGUI getGameGUI() { return gamegui; }
     @Override
-    public void connect() {
-        gameClient = new GameClient(userName, passwd, this);
-    }
+    public void connect() { gameClient = new GameClient(userName, passwd, this); }
 
 }// end of class
