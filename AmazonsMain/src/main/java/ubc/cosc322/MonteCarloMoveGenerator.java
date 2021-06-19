@@ -14,7 +14,7 @@ import java.util.ArrayList;
 public class MonteCarloMoveGenerator {
 
 	// This is the constant value for UCB. It can be tweaked.
-	private double C = 0.25; //So far I found 0.05 to be waaay better than 2.
+	private double C = 0.25; //Originally this was 2, but changign it to 0.05 seemed to be better, and then changing it to 0.25 seemed even better.
 	private long timeAlotted = 29;
 	private int ourTeam;
 	private int otherTeam;

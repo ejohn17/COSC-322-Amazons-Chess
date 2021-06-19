@@ -120,8 +120,8 @@ public class MiniMaxMoveGenerator {
 	
 	private static int getUtility(Board board, int ourTeam, int otherTeam) {
 		double c1 = 0;
-		double c2 = 0;
-		double c3 = 1;
+		double c2 = 1;
+		double c3 = 0;
 		if (board.getAllPossibleMoves(ourTeam).size() == 0)
 			return -END_REWARD;
 		if (board.getAllPossibleMoves(otherTeam).size() == 0)
