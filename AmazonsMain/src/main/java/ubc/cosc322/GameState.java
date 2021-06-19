@@ -3,6 +3,10 @@ package ubc.cosc322;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+/**
+ * @author Group 2: Vaughn Janes, Nick McGee, Erik Johnston, Ann Ni 
+ *	An object with which to represent the state of the game board, for use as a node in state-space-searches.
+ */
 public class GameState {
 	private int[] action; //The action taken to get to this game state from its parent
 	private Board board = new Board();
@@ -124,7 +128,7 @@ public class GameState {
 	
 	/* Class functions */
 	
-	/** Returns a list of this GameState's child states. Internal ArrayList not generated until the first time this method is called.
+	/** Returns a list of this GameState's child states. Internal ArrayList not generated until the first time this method is called, to reduce redundant re-processing.
 	 * @param team The number of the team for which you want all possible moves, aka the child nodes
 	 * @return An ArrayList containing all the GameStates that can be transitioned to from this GameState in one action.
 	 */
@@ -134,7 +138,7 @@ public class GameState {
 			for (int[] action : board.getAllPossibleMoves(team))
 				this.children.add(new GameState(action, this, this.getDepth() + 1));
 			isExpanded = true;
-//			System.out.println("Children generated!");
+			//System.out.println("Children generated!");
 		}
 		//System.out.println("Children already generated. Size of array: " + children.size());
 		return this.children;	

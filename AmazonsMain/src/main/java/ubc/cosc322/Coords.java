@@ -2,6 +2,12 @@ package ubc.cosc322;
 
 import java.util.ArrayList;
 
+/**
+ * This class represents a tile on the board, with the added .hashCode() and overridden .equals() methods so that it can be easily searched for within a HashSet
+ * (so that in our MiniMax's heuristic #3, we can easily search the HashSet of already-visited coordinates for this Coords many times, efficiently). 
+ * Originally, we had only been using primitive integer arrays to represent coordinates, for efficiency, but we ended up needing this class so that we could use
+ * it in HashSets when necessary.
+ */
 public class Coords {
 	private ArrayList<Integer> array = new ArrayList<>(2);
 	

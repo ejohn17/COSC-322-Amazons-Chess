@@ -14,6 +14,7 @@ import ygraph.ai.smartfox.games.amazons.AmazonsGameMessage;
  * An example illustrating how to implement a GamePlayer
  *
  * @author Yong Gao (yong.gao@ubc.ca) Jan 5, 2021
+ * @author Group 2: Vaughn Janes, Nick McGee, Erik Johnston, Ann Ni
  */
 public class COSC322Test extends GamePlayer {
 
@@ -23,6 +24,7 @@ public class COSC322Test extends GamePlayer {
     
     private int ourTeam;  // white = 2, black = 1
     private int otherTeam;
+    private final int MINIMAX_THRESHOLD = 60;
     
     private String userName = null;
     private String passwd = null;
@@ -143,9 +145,8 @@ public class COSC322Test extends GamePlayer {
             gamegui.updateGameState(queenpos, queenposNew, arrowPos);
             
             //Moved this down here so it still updates our GUI with their invalid move
-            if (arrayOfTruth[0][0] == false) {
+            if (arrayOfTruth[0][0] == false)
             	return false;
-            }
             
             // Print out their move
             System.out.println("\n\nOther player made a move:\n=====================");
@@ -208,7 +209,7 @@ public class COSC322Test extends GamePlayer {
         return true;
     }
     
-    /**Gets all possible moves for your team, and then sends that move to the server.
+    /**Calls on either the MiniMax algorithm or Monte Carlo to choose a move which is then sent to the server.
      * 
      * @param Array list of current gamestate
      * @return 
@@ -218,10 +219,18 @@ public class COSC322Test extends GamePlayer {
         MonteCarloMoveGenerator moveGen = new MonteCarloMoveGenerator(ourTeam);
         int[] move = moveGen.monteCarloTreeSearch(new GameState(board));
         
+        //The line below uses a randomized game to roughly estimate how many moves are left in the game
         double movesLeft = moveGen.estimateMovesLeft(new GameState(board), 10);
         System.out.println("Estimated moves left: " + movesLeft);
         System.out.println("Tiles available to us: " + MiniMaxMoveGenerator.heuristic3(board, ourTeam, otherTeam));
         System.out.println("Tiles available to them: " + MiniMaxMoveGenerator.heuristic3(board, otherTeam, ourTeam));
+        
+        //THIS IS THE PART THAT DECIDES WHETHER WE DO MINIMAX OR MONTE CARLO
+        //Starts off with MiniMax, then switches to Monte Carlo when there are estimated to be less than MINIMAX_THRESHOLD moves remaining
+        if (movesLeft > MINIMAX_THRESHOLD)
+        	move = MiniMaxMoveGenerator.getMove(new GameState(board), ourTeam);
+        else
+        	move = moveGen.monteCarloTreeSearch(new GameState(board));
         
         // Send that play to the server, and then update our board with that move.
         sendPlay(move);
@@ -237,6 +246,9 @@ public class COSC322Test extends GamePlayer {
 
 	}
 
+    /** Sends the argued move to the server. This method takes input in our coordinate format, and sends it to the server in Gao's format.
+     * @param move
+     */
     public void sendPlay(int[] move) {
     	ArrayList<Integer> queenStart = new ArrayList<Integer>();
     	queenStart.add(11 - move[1]);

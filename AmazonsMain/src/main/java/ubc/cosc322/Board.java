@@ -3,7 +3,7 @@ import java.util.*;
 
 
 /**
- * @author Vaughn Janes, Nick McGee, Erik Johnston, Ann Ni 
+ * @author Group 2: Vaughn Janes, Nick McGee, Erik Johnston, Ann Ni 
  *	A class for easy manipulation/analysis of the game board for Game of the Amazons
  */
 public class Board {
@@ -148,7 +148,7 @@ public class Board {
 	public static int[][] convertTo2DArray(ArrayList<Integer> board){
 		int[][] newBoard = new int[11][11];
 		
-		//Don't touch this hackjob (It converts the server's retarded one-dimensional gamestate array into one that isn't upside down. Also moves the obsolete row back to the top of the 2D array after flipping.)
+		//Don't touch this hackjob (It converts the server's one-dimensional gamestate array into one that isn't upside down. Also moves the obsolete row back to the top of the 2D array after flipping.)
 		for (int y = 1; y < 11; y++)
 			for (int x = 0; x < 11; x++)
 				newBoard[x][11 - y] = Integer.valueOf(board.get(y*11 + x));
@@ -221,9 +221,10 @@ public class Board {
      * @return a big list of int arrays of length 6, in the format { qx1, qy1, qx2, qy2, ax, ay } IN THE CONVENTIONAL COORDINATE FORMAT (y=1 is at the top of the board)
      */
     public ArrayList<int[]> getAllPossibleMoves(int team){
-    	if (movesListIsUpToDate) { //Saves time by not needlessly recalculating all moves if the board hasn't changed
+    	//Saves time by not needlessly recalculating all moves if the board hasn't changed
+    	if (movesListIsUpToDate)
     		return movesList;
-    	}
+    	
     	movesList = new ArrayList<>();
     	ArrayList<int[]> allQueenPositions = this.getQueenCoords(team);
     	for (int[] curQueenPosition : allQueenPositions) {
